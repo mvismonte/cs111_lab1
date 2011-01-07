@@ -207,6 +207,10 @@ command_free(command_t *cmd)
 		return;
 
 	/* Your code here. */
+	//look for more structures to free within command_t - mav
+	command_free(cmd->subshell);
+	command_free(cmd->next);
+	free(cmd);
 }
 
 
