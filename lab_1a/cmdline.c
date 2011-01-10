@@ -150,7 +150,7 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 				if ( token->buffer[1] == '>' )
 					token->type = TOK_2_GREATER_THAN;
 				break;
-			case ';':`
+			case ';':
 				token->type = TOK_SEMICOLON;
 				break;
 			case '&':
