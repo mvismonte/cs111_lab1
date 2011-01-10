@@ -356,7 +356,7 @@ command_parse(parsestate_t *parsestate)
 					parse_ungettoken(parsestate);
 					parse_gettoken(parsestate, &saved_token);
 					if (token.type == TOK_NORMAL) {
-						cmd->subshell = command_line_parse(parsestate);
+						cmd->subshell = command_line_parse(parsestate, 1);
 						if (!cmd->subshell) goto error;
 					}
 					else
