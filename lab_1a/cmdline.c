@@ -409,55 +409,55 @@ command_line_parse(parsestate_t *parsestate, int in_parens)
 		cmd = command_parse(parsestate);
 		if (!cmd)		// Empty commands are errors.
 			goto error;
-
+		
 		// Link the command up to the command line.
 		if (prev_cmd)
 			prev_cmd->next = cmd;
 		else
 			head = cmd;
 		prev_cmd = cmd;
-
+		
 		// EXERCISE: Fetch the next token to see how to connect this
 		// command with the next command.  React to errors with
 		// 'goto error'.  The ";" and "&" tokens may require special
 		// handling, since unlike other special tokens, they can end
 		// the command line.
-
+		
 		/* Your code here */
-                
-                //pseudo:
-                //get next token
-                //react
-                token_t token;
-                parse_gettoken(parsestate, &token);
-                switch ( token.type )
-                {
-                        //case CMD_END:
-                        //        break;
-                        case CMD_SEMICOLON:
-                        case CMD_BACKGROUND:
-                                parse_gettoken(parsestate, &token);
-                                if ( token.type == TOK_END )
-                                        goto done;
-                                parse_ungettoken(parsestate);
-                                continue;
-                        case CMD_PIPE:
-                                continue; //??
-                        case CMD_AND:
-                                parse_gettoken(parsestate, &token);
-                                if ( token.type == TOK_END )
-                                        goto error;
-                                parse_ungettoken(parsestate);
-                                continue;
-                        case CMD_OR:  //huh. same as CMD_AND?
-                                break;
-                        default:    //or CMD_END??
-                                break;
-                }
-
-
-
-                /* END new code */
+		
+		//pseudo:
+		//get next token
+		//react
+		token_t token;
+		parse_gettoken(parsestate, &token);
+		switch ( token.type )
+		{
+				//case CMD_END:
+				//        break;
+			case CMD_SEMICOLON:
+			case CMD_BACKGROUND:
+				parse_gettoken(parsestate, &token);
+				if ( token.type == TOK_END )
+					goto done;
+				parse_ungettoken(parsestate);
+				continue;
+			case CMD_PIPE:
+				continue; //??
+			case CMD_AND:
+				parse_gettoken(parsestate, &token);
+				if ( token.type == TOK_END )
+					goto error;
+				parse_ungettoken(parsestate);
+				continue;
+			case CMD_OR:  //huh. same as CMD_AND?
+				break;
+			default:    //or CMD_END??
+				break;
+		}
+		
+		
+		
+		/* END new code */
 		goto done;
 	}
 
