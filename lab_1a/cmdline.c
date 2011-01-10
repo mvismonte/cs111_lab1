@@ -349,6 +349,8 @@ command_parse(parsestate_t *parsestate)
 						goto error;
 				}
 				break;
+			case TOK_ERROR:
+				goto error;
 			default:
 				parse_ungettoken(parsestate);
 				goto done;
