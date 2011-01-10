@@ -307,7 +307,7 @@ command_parse(parsestate_t *parsestate)
 		if (i == MAXTOKENS)
 			goto error;
 
-		token_t token, saved_token;
+		token_t token;
 		parse_gettoken(parsestate, &token);
 
 		switch (token.type) {
@@ -353,8 +353,13 @@ command_parse(parsestate_t *parsestate)
 				}*/
 				cmd->subshell = command_line_parse(parsestate, 1);
 				break;
+			case TOK_CLOSE_PAREN:
+				parse_ungettoken(parsestate);
+				goto done;
 			case TOK_ERROR:
 				goto error;
+			case TOK_END:
+				goto done;
 			default:
 				parse_ungettoken(parsestate);
 				goto done;
@@ -367,7 +372,7 @@ command_parse(parsestate_t *parsestate)
 
 	// EXERCISE: Make sure you return the right return value!
 
-	if (i == 0) {
+	if (i == 0 && cmd->subshell == NULL) {
 		/* Empty command */
 		command_free(cmd);
 		return NULL;
