@@ -337,10 +337,13 @@ command_parse(parsestate_t *parsestate)
 					goto error;
 				break;
 			case TOK_OPEN_PAREN:
-				if (i != 0) {
+				if (i == 0) {
+					cmd->subshell = command_line_parse(parsestate, 1);
+				} else {
 					parse_ungettoken(parsestate);
 					parse_ungettoken(parsestate);
 					parse_gettoken(parsestate, &saved_token);
+					parse_gettoken(parsestate, &token);
 					if (token.type == TOK_NORMAL) {
 						cmd->subshell = command_line_parse(parsestate, 1);
 						if (!cmd->subshell) goto error;
