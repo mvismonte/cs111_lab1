@@ -271,7 +271,7 @@ command_parse(parsestate_t *parsestate)
 		if (i == MAXTOKENS)
 			goto error;
 
-		token_t token;
+		token_t token, saved_token;
 		parse_gettoken(parsestate, &token);
 
 		switch (token.type) {
@@ -300,6 +300,19 @@ command_parse(parsestate_t *parsestate)
 				else
 					goto error;
 				break;
+			case TOK_OPEN_PAREN:
+				if (i == 0) break;
+				else {
+					parse_ungettoken(parsestate);
+					parse_ungettoken(parsestate);
+					parse_gettoken(parsestate, &saved_token);
+					if (token.type == TOK_NORMAL) {
+						cmd->subshell = command_line_parse(parsestate);
+						if (!cmd->subshell) goto error;
+					}
+					else
+						goto error;
+				}
 			default:
 				parse_ungettoken(parsestate);
 				goto done;
