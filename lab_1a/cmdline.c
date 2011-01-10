@@ -424,7 +424,7 @@ command_line_parse(parsestate_t *parsestate, int in_parens)
 		// the command line.
 		
 		/* Your code here */
-		
+                
 		//pseudo:
 		//get next token
 		//react
@@ -435,23 +435,38 @@ command_line_parse(parsestate_t *parsestate, int in_parens)
 				//case CMD_END:
 				//        break;
 			case CMD_SEMICOLON:
+				cmd->controlop = CMD_SEMICOLON;
+				parse_gettoken(parsestate, &token);
+				if ( token.type == TOK_END )
+					goto done;
+				parse_ungettoken(parsestate);
+				continue;
 			case CMD_BACKGROUND:
+				cmd->controlop = CMD_BACKGROUND;
 				parse_gettoken(parsestate, &token);
 				if ( token.type == TOK_END )
 					goto done;
 				parse_ungettoken(parsestate);
 				continue;
 			case CMD_PIPE:
+				cmd->controlop = CMD_PIPE;
 				continue; //??
 			case CMD_AND:
+				cmd->controlop = CMD_AND;
 				parse_gettoken(parsestate, &token);
 				if ( token.type == TOK_END )
 					goto error;
 				parse_ungettoken(parsestate);
 				continue;
 			case CMD_OR:  //huh. same as CMD_AND?
-				break;
+				cmd->controlop = CMD_OR;
+				parse_gettoken(parsestate, &token);
+				if ( token.type == TOK_END )
+					goto error;
+				parse_ungettoken(parsestate);
+				continue;
 			default:    //or CMD_END??
+				cmd->controlop = CMD_END;
 				break;
 		}
 		
