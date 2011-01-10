@@ -150,7 +150,7 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 				if ( token->buffer[1] == '>' )
 					token->type = TOK_2_GREATER_THAN;
 				break;
-			case ';':
+			case ';':`
 				token->type = TOK_SEMICOLON;
 				break;
 			case '&':
@@ -240,12 +240,17 @@ command_free(command_t *cmd)
 		return;
 
 	/* Your code here. */
-        //free token... see command_parse, new decl of token
 
-
-	//look for more structures to free within command_t - mav
+	for (i = 0; i < 3; i++)
+		if (cmd->redirect_filename[i] != NULL)
+			free(cmd->redirect_filename[i]);
+	
+	for (i = 0; *(cmd->argv[i]) == '\0' ;i++)
+		free(cmd->argv[i]);
+	
 	command_free(cmd->subshell);
 	command_free(cmd->next);
+	
 	free(cmd);
 }
 
