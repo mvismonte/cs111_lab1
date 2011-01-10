@@ -337,7 +337,7 @@ command_parse(parsestate_t *parsestate)
 					goto error;
 				break;
 			case TOK_OPEN_PAREN:
-				if (i == 0) {
+				/*if (i == 0) {
 					cmd->subshell = command_line_parse(parsestate, 1);
 				} else {
 					parse_ungettoken(parsestate);
@@ -350,7 +350,8 @@ command_parse(parsestate_t *parsestate)
 					}
 					else
 						goto error;
-				}
+				}*/
+				cmd->subshell = command_line_parse(parsestate, 1);
 				break;
 			case TOK_ERROR:
 				goto error;
