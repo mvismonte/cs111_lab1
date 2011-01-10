@@ -104,28 +104,24 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 	// Change this code to handle quotes and terminate tokens at spaces.
 
 	i = 0;
-	//while (*str != '\0') {      //CHANGE THIS TO STOP AT WHITESP AND " "
-        if ( *str == '\"' ) { //is '"' correct?
-                ++str;
-                while ( *str != '\"' ) {     //need to err if /0 before "
-                        if ( *str == '\0')
-                                goto error; //is this right?
-                        if ( i >= TOKENSIZE - 1)
-                                goto error;
-                        token->buffer[i++] = *str++;
-                }
-                ++str;
-        }
-        else {
-                while ( !isspace((int) *str) ) {
-		        if (i >= TOKENSIZE - 1)
-			        // Token too long; this is an error
-			        goto error;
-		        token->buffer[i++] = *str++;
-	        }
-        }
+	quote_state = 0;
+	
+	while (*str != '\0') {
+		if (*str == '\"') {
+			quote_state = !quote_state;
+			str++;
+		} else {
+			if (!quote_state && isspace(*str)) break;
+			else {
+				if (i + 1 == TOKENSIZE) goto error;
+				token->buffer[i++] = *str;
+				str++;
+			}
+		}
+	}
+	if (quote_state) goto error; //if still in quote state, we have an error
+	
 	token->buffer[i] = '\0';	// end the token string
-        /* END EDIT!!!!!!!!!!!!!!! */
 
 	// Save initial position so parse_ungettoken() will work
 	parsestate->last_position = parsestate->position;
@@ -137,52 +133,43 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 	// Quoted special tokens, such as '">"', have type TOK_NORMAL.
 
 	/* Your code here. */
-        switch ( token->buffer[0] )
-        {
-                case '<':
-                        token->type = TOK_LESS_THAN;
-                        break;
-                case '>':
-                        token->type = TOK_GREATER_THAN;
-                        break;
-                case '2':
-                        if ( token->buffer[1] == '>' )
-                                token->type = TOK_2_GREATER_THAN;
-                        break;
-                case ';':
-                        token->type = TOK_SEMICOLON;
-                        break;
-                case '&':
-                        if ( token->buffer[1] == '&' )
-                                token->type = TOK_DOUBLEAMP;
-                        else
-                                token->type = TOK_AMPERSAND;
-                        break;
-                case '|':
-                        if ( token->buffer[1] == '|' )
-                                token->type = TOK_DOUBLEPIPE;
-                        else
-                                token->type = TOK_PIPE;
-                        break;
-                case '(':
-                        token->type = TOK_OPEN_PAREN;
-                        break;
-                case ')':
-                        token->type = TOK_CLOSE_PAREN;
-                        break;
-                default:
-                        token->type = TOK_NORMAL;
-        }
+	switch ( token->buffer[0] )
+	{
+		case '<':
+			token->type = TOK_LESS_THAN;
+			break;
+		case '>':
+			token->type = TOK_GREATER_THAN;
+			break;
+		case '2':
+			if ( token->buffer[1] == '>' )
+				token->type = TOK_2_GREATER_THAN;
+			break;
+		case ';':
+			token->type = TOK_SEMICOLON;
+			break;
+		case '&':
+			if ( token->buffer[1] == '&' )
+				token->type = TOK_DOUBLEAMP;
+			else
+				token->type = TOK_AMPERSAND;
+			break;
+		case '|':
+			if ( token->buffer[1] == '|' )
+				token->type = TOK_DOUBLEPIPE;
+			else
+				token->type = TOK_PIPE;
+			break;
+		case '(':
+			token->type = TOK_OPEN_PAREN;
+			break;
+		case ')':
+			token->type = TOK_CLOSE_PAREN;
+			break;
+		default:
+			token->type = TOK_NORMAL;
+	}
 
-
-
-
-
-
-
-        /* End new code. */
-	
-	token->type = TOK_NORMAL;
 	return;
 
  error:
@@ -350,8 +337,7 @@ command_parse(parsestate_t *parsestate)
 					goto error;
 				break;
 			case TOK_OPEN_PAREN:
-				if (i == 0) break;
-				else {
+				if (i != 0) {
 					parse_ungettoken(parsestate);
 					parse_ungettoken(parsestate);
 					parse_gettoken(parsestate, &saved_token);
@@ -362,6 +348,7 @@ command_parse(parsestate_t *parsestate)
 					else
 						goto error;
 				}
+				break;
 			default:
 				parse_ungettoken(parsestate);
 				goto done;
