@@ -107,7 +107,7 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 	//while (*str != '\0') {      //CHANGE THIS TO STOP AT WHITESP AND " "
         if ( *str == '"' ) { //is '"' correct?
                 ++str;
-                while ( *str != '"' ) {
+                while ( *str != '"' ) {     //need to err if /0 before "
                         if ( i >= TOKENSIZE - 1)
                                 goto error;
                         token->buffer[i++] = *str++;
