@@ -470,6 +470,11 @@ command_line_parse(parsestate_t *parsestate, int in_parens)
 					goto error;
 				parse_ungettoken(parsestate);
 				continue;
+			case TOK_CLOSE_PAREN:
+				if (in_parens)
+					goto done;
+				else
+					goto error;
 			default:    //or CMD_END??
 				cmd->controlop = CMD_END;
 				break;
