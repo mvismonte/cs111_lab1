@@ -149,16 +149,10 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 			token->type = TOK_SEMICOLON;
 			break;
 		case '&':
-			if ( token->buffer[1] == '&' )
-				token->type = TOK_DOUBLEAMP;
-			else
-				token->type = TOK_AMPERSAND;
+			token->type = token->buffer[1] == '&' ? TOK_DOUBLEAMP : TOK_AMPERSAND;
 			break;
 		case '|':
-			if ( token->buffer[1] == '|' )
-				token->type = TOK_DOUBLEPIPE;
-			else
-				token->type = TOK_PIPE;
+			token->type = token->buffer[1] == '|' ? TOK_DOUBLEPIPE : TOK_PIPE;
 			break;
 		case '(':
 			token->type = TOK_OPEN_PAREN;
@@ -169,7 +163,7 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 		default:
 			token->type = TOK_NORMAL;
 	}
-
+	
 	return;
 
  error:
