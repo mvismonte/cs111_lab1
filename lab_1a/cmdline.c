@@ -268,18 +268,41 @@ command_parse(parsestate_t *parsestate)
 		// Hint: An open parenthesis should recursively call
 		// command_line_parse(). The command_t structure has a slot
 		// you can use for parens; figure out how to use it!
+		if (i == MAXTOKENS)
+			goto error;
 
 		token_t token;
 		parse_gettoken(parsestate, &token);
 
 		switch (token.type) {
-		case TOK_NORMAL:
-			cmd->argv[i] = strdup(token.buffer);
-			i++;
-			break;
-		default:
-			parse_ungettoken(parsestate);
-			goto done;
+			case TOK_NORMAL:
+				cmd->argv[i] = strdup(token.buffer);
+				i++;
+				break;
+			case TOK_LESS_THAN:
+				parse_gettoken(parsestate, &token);
+				if (token.type == TOK_NORMAL)
+					cmd->redirect_filename[STDIN_FILENO] = strdup(token.buffer);
+				else
+					goto error;
+				break;
+			case TOK_GREATER_THAN:
+				parse_gettoken(parsestate, &token);
+				if (token.type == TOK_NORMAL)
+					cmd->redirect_filename[STDOUT_FILENO] = strdup(token.buffer);
+				else
+					goto error;
+				break;
+			case TOK_2_GREATER_THAN:
+				parse_gettoken(parsestate, &token);
+				if (token.type == TOK_NORMAL)
+					cmd->redirect_filename[STDERR_FILENO] = strdup(token.buffer);
+				else
+					goto error;
+				break;
+			default:
+				parse_ungettoken(parsestate);
+				goto done;
 		}
 	}
 
