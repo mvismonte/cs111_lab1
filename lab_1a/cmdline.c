@@ -80,7 +80,7 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 	// EXERCISE: Skip initial whitespace in 'str'.
 
 	/* Your code here. */
-        while ( isspace((int) *str) ) // &&? anything else? need CAST?
+        while ( isspace((int) *str) ) // &&? anything else? need CAST? \0?
             str++;
 
         /* END NEW CODE !!!!!!!!!!!! */
@@ -105,9 +105,11 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 
 	i = 0;
 	//while (*str != '\0') {      //CHANGE THIS TO STOP AT WHITESP AND " "
-        if ( *str == '"' ) { //is '"' correct?
+        if ( *str == '\"' ) { //is '"' correct?
                 ++str;
-                while ( *str != '"' ) {
+                while ( *str != '\"' ) {     //need to err if /0 before "
+                        if ( *str == '\0')
+                                goto error; //is this right?
                         if ( i >= TOKENSIZE - 1)
                                 goto error;
                         token->buffer[i++] = *str++;
@@ -135,6 +137,50 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 	// Quoted special tokens, such as '">"', have type TOK_NORMAL.
 
 	/* Your code here. */
+        switch ( token->buffer[0] )
+        {
+                case '<':
+                        token->type = TOK_LESS_THAN;
+                        break;
+                case '>':
+                        token->type = TOK_GREATER_THAN;
+                        break;
+                case '2':
+                        if ( token->buffer[1] == '>' )
+                                token->type = TOK_2_GREATER_THAN;
+                        break;
+                case ';':
+                        token->type = TOK_SEMICOLON;
+                        break;
+                case '&':
+                        if ( token->buffer[1] == '&' )
+                                token->type = TOK_DOUBLEAMP;
+                        else
+                                token->type = TOK_AMPERSAND;
+                        break;
+                case '|':
+                        if ( token->buffer[1] == '|' )
+                                token->type = TOK_DOUBLEPIPE;
+                        else
+                                token->type = TOK_PIPE;
+                        break;
+                case '(':
+                        token->type = TOK_OPEN_PAREN;
+                        break;
+                case ')':
+                        token->type = TOK_CLOSE_PAREN;
+                        break;
+                default:
+                        token->type = TOK_NORMAL;
+        }
+
+
+
+
+
+
+
+        /* End new code. */
 	
 	token->type = TOK_NORMAL;
 	return;
@@ -207,6 +253,9 @@ command_free(command_t *cmd)
 		return;
 
 	/* Your code here. */
+        //free token... see command_parse, new decl of token
+
+
 	//look for more structures to free within command_t - mav
 	command_free(cmd->subshell);
 	command_free(cmd->next);
@@ -388,6 +437,40 @@ command_line_parse(parsestate_t *parsestate, int in_parens)
 		// the command line.
 
 		/* Your code here */
+                
+                //pseudo:
+                //get next token
+                //react
+                token_t token;
+                parse_gettoken(parsestate, &token);
+                switch ( token.type )
+                {
+                        //case CMD_END:
+                        //        break;
+                        case CMD_SEMICOLON:
+                        case CMD_BACKGROUND:
+                                parse_gettoken(parsestate, &token);
+                                if ( token.type == TOK_END )
+                                        goto done;
+                                parse_ungettoken(parsestate);
+                                continue;
+                        case CMD_PIPE:
+                                continue; //??
+                        case CMD_AND:
+                                parse_gettoken(parsestate, &token);
+                                if ( token.type == TOK_END )
+                                        goto error;
+                                parse_ungettoken(parsestate);
+                                continue;
+                        case CMD_OR:  //huh. same as CMD_AND?
+                                break;
+                        default:    //or CMD_END??
+                                break;
+                }
+
+
+
+                /* END new code */
 		goto done;
 	}
 
