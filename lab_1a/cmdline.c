@@ -275,6 +275,7 @@ command_parse(parsestate_t *parsestate)
 	if (!cmd)
 		return NULL;
 
+	tokentype_t last_token_type = TOK_END;
 	while (1) {
 		// EXERCISE: Read the next token from 'parsestate'.
 
@@ -337,21 +338,10 @@ command_parse(parsestate_t *parsestate)
 					goto error;
 				break;
 			case TOK_OPEN_PAREN:
-				/*if (i == 0) {
+				if (last_token_type != TOK_NORMAL)
 					cmd->subshell = command_line_parse(parsestate, 1);
-				} else {
-					parse_ungettoken(parsestate);
-					parse_ungettoken(parsestate);
-					parse_gettoken(parsestate, &saved_token);
-					parse_gettoken(parsestate, &token);
-					if (token.type == TOK_NORMAL) {
-						cmd->subshell = command_line_parse(parsestate, 1);
-						if (!cmd->subshell) goto error;
-					}
-					else
-						goto error;
-				}*/
-				cmd->subshell = command_line_parse(parsestate, 1);
+				else
+					goto error;
 				break;
 			case TOK_CLOSE_PAREN:
 				parse_ungettoken(parsestate);
@@ -364,6 +354,7 @@ command_parse(parsestate_t *parsestate)
 				parse_ungettoken(parsestate);
 				goto done;
 		}
+		last_token_type = token.type;
 	}
 
  done:
