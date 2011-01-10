@@ -105,10 +105,12 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 
 	i = 0;
 	quote_state = 0;
+	any_quotes = 0;
 	
 	while (*str != '\0') {
 		if (*str == '\"') {
 			quote_state = !quote_state;
+			any_quotes = 1;
 			str++;
 		} else {
 			if (!quote_state && isspace(*str)) break;
@@ -133,35 +135,39 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 	// Quoted special tokens, such as '">"', have type TOK_NORMAL.
 
 	/* Your code here. */
-	switch ( token->buffer[0] )
-	{
-		case '<':
-			token->type = TOK_LESS_THAN;
-			break;
-		case '>':
-			token->type = TOK_GREATER_THAN;
-			break;
-		case '2':
-			if ( token->buffer[1] == '>' )
-				token->type = TOK_2_GREATER_THAN;
-			break;
-		case ';':
-			token->type = TOK_SEMICOLON;
-			break;
-		case '&':
-			token->type = token->buffer[1] == '&' ? TOK_DOUBLEAMP : TOK_AMPERSAND;
-			break;
-		case '|':
-			token->type = token->buffer[1] == '|' ? TOK_DOUBLEPIPE : TOK_PIPE;
-			break;
-		case '(':
-			token->type = TOK_OPEN_PAREN;
-			break;
-		case ')':
-			token->type = TOK_CLOSE_PAREN;
-			break;
-		default:
-			token->type = TOK_NORMAL;
+	if (any_quotes) {
+		token->type = TOK_NORMAL;
+	} else {
+		switch ( token->buffer[0] )
+		{
+			case '<':
+				token->type = TOK_LESS_THAN;
+				break;
+			case '>':
+				token->type = TOK_GREATER_THAN;
+				break;
+			case '2':
+				if ( token->buffer[1] == '>' )
+					token->type = TOK_2_GREATER_THAN;
+				break;
+			case ';':
+				token->type = TOK_SEMICOLON;
+				break;
+			case '&':
+				token->type = token->buffer[1] == '&' ? TOK_DOUBLEAMP : TOK_AMPERSAND;
+				break;
+			case '|':
+				token->type = token->buffer[1] == '|' ? TOK_DOUBLEPIPE : TOK_PIPE;
+				break;
+			case '(':
+				token->type = TOK_OPEN_PAREN;
+				break;
+			case ')':
+				token->type = TOK_CLOSE_PAREN;
+				break;
+			default:
+				token->type = TOK_NORMAL;
+		}
 	}
 	
 	return;
