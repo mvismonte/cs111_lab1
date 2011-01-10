@@ -481,6 +481,11 @@ command_line_parse(parsestate_t *parsestate, int in_parens)
 					goto done;
 				else
 					goto error;
+			case TOK_END:
+				if (in_parens)
+					goto error;
+				else
+					goto done;
 			default:    //or CMD_END??
 				cmd->controlop = CMD_END;
 				break;
