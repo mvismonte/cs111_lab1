@@ -124,10 +124,16 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 					break;
 				}
 				if (*str == '&') {
-					if ( i == 0 && *(str+1) != '&') {
+					if (*(str+1) != '&') {
+						if ( i == 0 ) {
+							token->buffer[i++] = *str;
+							str++;
+						}
+						break;
+					} else {
+						if (i + 1 == TOKENSIZE) goto error;
 						token->buffer[i++] = *str;
 						str++;
-						break;
 					}
 				}
 			}
