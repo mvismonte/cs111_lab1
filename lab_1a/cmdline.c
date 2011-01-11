@@ -245,7 +245,7 @@ command_free(command_t *cmd)
 		if (cmd->redirect_filename[i] != NULL)
 			free(cmd->redirect_filename[i]);
 	
-	for (i = 0; *(cmd->argv[i]) == '\0' ;i++)
+	for (i = 0; cmd->argv[i] == NULL ;i++)
 		free(cmd->argv[i]);
 	
 	command_free(cmd->subshell);
