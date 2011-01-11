@@ -109,8 +109,10 @@
 	    '[1 args "space program"] .' ],
 
 # Mixed examples
-	  [ 'ls > ist ; cat list && rm list',
+	  [ 'ls > ist;cat list && rm list',
 	    '[1 args "ls" >ist] ; [2 args "cat" "list"] && [2 args "rm" "list"] .' ],
+	  [ 'ls > ist&cat list && rm list',
+	    '[1 args "ls" >ist] & [2 args "cat" "list"] && [2 args "rm" "list"] .' ],
 	  [ 'cat < file | more',
 	    '[1 args "cat" <file] | [1 args "more"] .' ],
 	  [ 'echo | true > temp.out',

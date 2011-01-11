@@ -113,12 +113,25 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 			any_quotes = 1;
 			str++;
 		} else {
-			if (!quote_state && isspace(*str)) break;
-			else {
-				if (i + 1 == TOKENSIZE) goto error;
-				token->buffer[i++] = *str;
-				str++;
+			if (!quote_state) {
+				if (isspace(*str))
+					break;
+				if (*str == ';') {
+					if (i == 0) {
+						token->buffer[i++] = *str;
+						str++;
+					}
+					break;
+				}
+				if (*str == '&' && *(str+1) != '&' && i == 0) {
+					token->buffer[i++] = *str;
+					str++;
+					break;
+				}
 			}
+			if (i + 1 == TOKENSIZE) goto error;
+			token->buffer[i++] = *str;
+			str++;
 		}
 	}
 	if (quote_state) goto error; //if still in quote state, we have an error
@@ -245,7 +258,7 @@ command_free(command_t *cmd)
 		if (cmd->redirect_filename[i] != NULL)
 			free(cmd->redirect_filename[i]);
 	
-	for (i = 0; *(cmd->argv[i]) == '\0' ;i++)
+	for (i = 0; cmd->argv[i] != NULL ;i++)
 		free(cmd->argv[i]);
 	
 	command_free(cmd->subshell);
