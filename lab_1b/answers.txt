@@ -11,9 +11,9 @@
 # information you'd like us to know, please add it at the end of the file.
 
 # Partner 1
-Name: 
-Student ID: 
-Email: 
+Name: Mark Vismonte
+Student ID: 503765196
+Email: mark.vismonte@gmail.com
 
 # Partner 2 (if you're working in a team)
 Name: 
