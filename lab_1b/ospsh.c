@@ -78,13 +78,31 @@ command_exec(command_t *cmd, int *pass_pipefd)
      execve(const char *path, char *const argv[], char *const envp[]);
 	 */
 	
+	
 	pid = fork();
 	
 	if (pid == 0) {
-		printf("Executing Child\n");
+		//printf("Executing Child\n");
+		int fd;
+
+		if (cmd->redirect_filename[0]) {
+			fd = open(cmd->redirect_filename[0], O_RDONLY);
+			dup2(fd, 0);
+			close(fd);
+			
+		}
+		if (cmd->redirect_filename[1]) {
+			fd = open(cmd->redirect_filename[1], O_CREAT|O_WRONLY);
+			dup2(fd, 1);
+			close(fd);
+			
+		}
+		if (cmd->redirect_filename[2]) {
+			fd = open(cmd->redirect_filename[2], O_CREAT|O_WRONLY);
+			dup2(fd, 2);
+			close(fd);
+		}
 		printf("Status: %d\n", execvp(cmd->argv[0], &cmd->argv[0]));
-		
-		exit(1);
 	} else {
 		//printf("Executing Parent\n");
 	}
