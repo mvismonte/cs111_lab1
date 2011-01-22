@@ -171,6 +171,33 @@ command_line_exec(command_t *cmdlist)
 		// If an error occurs in command_exec, feel free to abort().
 
 		/* Your code here. */
+        pid_t id = command_exec(cmdlist, &pipefd);
+        if (id < 0)
+            abort();
+
+        switch(cmdlist->controlop)
+        {
+            case CMD_END:
+            case CMD_SEMICOLON:
+                waitpid(id, &wp_status, 0);
+                break;
+            case CMD_AND:
+                waitpid(id, &wp_status, 0);
+                if (WEXITSTATUS(wp_status))
+                    goto done;
+                break;
+            case CMD_OR:
+                waitpid(id, &wp_status, 0);
+                if (!WEXITSTATUS(wp_status))
+                    goto done;
+                break;
+
+            case CMD_BACKGROUND:
+            case CMD_PIPE:
+                cmd_line_status = 0;
+                break;
+        }
+
 
 		cmdlist = cmdlist->next;
 	}
