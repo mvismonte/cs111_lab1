@@ -67,6 +67,11 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	// Return -1 if the pipe fails.
 	if (cmd->controlop == CMD_PIPE) {
 		/* Your code here. */
+		if (pipe(pipefd) == -1)
+			return -1;
+//        pid = fork();
+//        if (pid == 0) {
+//            dup2(pipefd[0], 0);
 	}
 
 
@@ -84,14 +89,17 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	if (pid == 0) {
 		//printf("Executing Child\n");
 		int fd;
-
-		if (cmd->redirect_filename[0]) {
+        if (*pass_pipefd != STDIN_FILENO)
+            dup2(*pass_pipefd, 0);
+        else if (cmd->redirect_filename[0]) {
 			fd = open(cmd->redirect_filename[0], O_RDONLY);
 			dup2(fd, 0);
 			close(fd);
 			
 		}
-		if (cmd->redirect_filename[1]) {
+        if (cmd->controlop == CMD_PIPE)
+            dup2(pipefd[1], 1);
+        else if (cmd->redirect_filename[1]) {
 			fd = open(cmd->redirect_filename[1], O_CREAT|O_WRONLY);
 			dup2(fd, 1);
 			close(fd);
@@ -105,6 +113,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 		printf("Status: %d\n", execvp(cmd->argv[0], &cmd->argv[0]));
 	} else {
 		//printf("Executing Parent\n");
+        //*pass_pipefd = pipefd[1];  // um
 	}
 	
 	
