@@ -70,6 +70,27 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	}
 
 
+	/*
+	 pid_t
+     fork(void);
+	 
+	 int
+     execve(const char *path, char *const argv[], char *const envp[]);
+	 */
+	
+	pid = fork();
+	
+	if (pid == 0) {
+		printf("Executing Child\n");
+		printf("Status: %d\n", execvp(cmd->argv[0], &cmd->argv[0]));
+		
+		exit(1);
+	} else {
+		//printf("Executing Parent\n");
+	}
+	
+	
+	
 	// Fork the child and execute the command in that child.
 	// You will handle all redirections by manipulating file descriptors.
 	//
