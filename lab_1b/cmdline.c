@@ -1,5 +1,5 @@
-/*
- * UCLA CS 111 - Winter 2011 - Lab 1
+/* 
+ * UCLA CS 111 - Fall 2007 - Lab 1
  * Skeleton code for commandline parsing for Lab 1 - Shell processing
  * This file contains the skeleton code for parsing input from the command
  * line.
@@ -80,7 +80,11 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 	// EXERCISE: Skip initial whitespace in 'str'.
 
 	/* Your code here. */
+        while ( isspace((int) *str) ) // &&? anything else? need CAST? \0?
+            str++;
 
+        /* END NEW CODE !!!!!!!!!!!! */
+	
 	// Report TOK_END at the end of the command string.
 	if (*str == '\0') {
 		// Save initial position so parse_ungettoken() will work
@@ -100,14 +104,26 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 	// Change this code to handle quotes and terminate tokens at spaces.
 
 	i = 0;
+	quote_state = 0;
+	any_quotes = 0;
+	
 	while (*str != '\0') {
-		if (i >= TOKENSIZE - 1)
-			// Token too long; this is an error
-			goto error;
-		token->buffer[i++] = *str++;
+		if (*str == '\"') {
+			quote_state = !quote_state;
+			any_quotes = 1;
+			str++;
+		} else {
+			if (!quote_state && isspace(*str)) break;
+			else {
+				if (i + 1 == TOKENSIZE) goto error;
+				token->buffer[i++] = *str;
+				str++;
+			}
+		}
 	}
+	if (quote_state) goto error; //if still in quote state, we have an error
+	
 	token->buffer[i] = '\0';	// end the token string
-
 
 	// Save initial position so parse_ungettoken() will work
 	parsestate->last_position = parsestate->position;
@@ -119,8 +135,41 @@ parse_gettoken(parsestate_t *parsestate, token_t *token)
 	// Quoted special tokens, such as '">"', have type TOK_NORMAL.
 
 	/* Your code here. */
-
-	token->type = TOK_NORMAL;
+	if (any_quotes) {
+		token->type = TOK_NORMAL;
+	} else {
+		switch ( token->buffer[0] )
+		{
+			case '<':
+				token->type = TOK_LESS_THAN;
+				break;
+			case '>':
+				token->type = TOK_GREATER_THAN;
+				break;
+			case '2':
+				if ( token->buffer[1] == '>' )
+					token->type = TOK_2_GREATER_THAN;
+				break;
+			case ';':
+				token->type = TOK_SEMICOLON;
+				break;
+			case '&':
+				token->type = token->buffer[1] == '&' ? TOK_DOUBLEAMP : TOK_AMPERSAND;
+				break;
+			case '|':
+				token->type = token->buffer[1] == '|' ? TOK_DOUBLEPIPE : TOK_PIPE;
+				break;
+			case '(':
+				token->type = TOK_OPEN_PAREN;
+				break;
+			case ')':
+				token->type = TOK_CLOSE_PAREN;
+				break;
+			default:
+				token->type = TOK_NORMAL;
+		}
+	}
+	
 	return;
 
  error:
@@ -160,7 +209,7 @@ command_alloc(void)
 	command_t *cmd = (command_t *) malloc(sizeof(*cmd));
 	if (!cmd)
 		return NULL;
-
+	
 	// Set all its fields to 0
 	memset(cmd, 0, sizeof(*cmd));
 
@@ -185,12 +234,24 @@ void
 command_free(command_t *cmd)
 {
 	int i;
-
+	
 	// It's OK to command_free(NULL).
 	if (!cmd)
 		return;
 
 	/* Your code here. */
+
+	for (i = 0; i < 3; i++)
+		if (cmd->redirect_filename[i] != NULL)
+			free(cmd->redirect_filename[i]);
+	
+	for (i = 0; cmd->argv[i] == NULL ;i++)
+		free(cmd->argv[i]);
+	
+	command_free(cmd->subshell);
+	command_free(cmd->next);
+	
+	free(cmd);
 }
 
 
@@ -219,6 +280,7 @@ command_parse(parsestate_t *parsestate)
 	if (!cmd)
 		return NULL;
 
+	tokentype_t last_token_type = TOK_END;
 	while (1) {
 		// EXERCISE: Read the next token from 'parsestate'.
 
@@ -248,19 +310,56 @@ command_parse(parsestate_t *parsestate)
 		// Hint: An open parenthesis should recursively call
 		// command_line_parse(). The command_t structure has a slot
 		// you can use for parens; figure out how to use it!
+		if (i == MAXTOKENS)
+			goto error;
 
 		token_t token;
 		parse_gettoken(parsestate, &token);
 
 		switch (token.type) {
-		case TOK_NORMAL:
-			cmd->argv[i] = strdup(token.buffer);
-			i++;
-			break;
-		default:
-			parse_ungettoken(parsestate);
-			goto done;
+			case TOK_NORMAL:
+				cmd->argv[i] = strdup(token.buffer);
+				i++;
+				break;
+			case TOK_LESS_THAN:
+				parse_gettoken(parsestate, &token);
+				if (token.type == TOK_NORMAL)
+					cmd->redirect_filename[STDIN_FILENO] = strdup(token.buffer);
+				else
+					goto error;
+				break;
+			case TOK_GREATER_THAN:
+				parse_gettoken(parsestate, &token);
+				if (token.type == TOK_NORMAL)
+					cmd->redirect_filename[STDOUT_FILENO] = strdup(token.buffer);
+				else
+					goto error;
+				break;
+			case TOK_2_GREATER_THAN:
+				parse_gettoken(parsestate, &token);
+				if (token.type == TOK_NORMAL)
+					cmd->redirect_filename[STDERR_FILENO] = strdup(token.buffer);
+				else
+					goto error;
+				break;
+			case TOK_OPEN_PAREN:
+				if (last_token_type != TOK_NORMAL)
+					cmd->subshell = command_line_parse(parsestate, 1);
+				else
+					goto error;
+				break;
+			case TOK_CLOSE_PAREN:
+				parse_ungettoken(parsestate);
+				goto done;
+			case TOK_ERROR:
+				goto error;
+			case TOK_END:
+				goto done;
+			default:
+				parse_ungettoken(parsestate);
+				goto done;
 		}
+		last_token_type = token.type;
 	}
 
  done:
@@ -269,13 +368,13 @@ command_parse(parsestate_t *parsestate)
 
 	// EXERCISE: Make sure you return the right return value!
 
-	if (i == 0) {
+	if (i == 0 && cmd->subshell == NULL) {
 		/* Empty command */
 		command_free(cmd);
 		return NULL;
 	} else
 		return cmd;
-
+	
  error:
 	command_free(cmd);
 	return NULL;
@@ -311,27 +410,86 @@ command_line_parse(parsestate_t *parsestate, int in_parens)
 	// COMMAND && COMMAND                  => OK
 	// COMMAND &&                          => error (can't end with &&)
 	// COMMAND )                           => error (but OK if "in_parens")
-
+	
 	while (1) {
 		// Parse the next command.
 		cmd = command_parse(parsestate);
 		if (!cmd)		// Empty commands are errors.
 			goto error;
-
+		
 		// Link the command up to the command line.
 		if (prev_cmd)
 			prev_cmd->next = cmd;
 		else
 			head = cmd;
 		prev_cmd = cmd;
-
+		
 		// EXERCISE: Fetch the next token to see how to connect this
 		// command with the next command.  React to errors with
 		// 'goto error'.  The ";" and "&" tokens may require special
 		// handling, since unlike other special tokens, they can end
 		// the command line.
-
+		
 		/* Your code here */
+                
+		//pseudo:
+		//get next token
+		//react
+		token_t token;
+		parse_gettoken(parsestate, &token);
+		switch ( token.type )
+		{
+				//case CMD_END:
+				//        break;
+			case CMD_SEMICOLON:
+				cmd->controlop = CMD_SEMICOLON;
+				parse_gettoken(parsestate, &token);
+				if ( token.type == TOK_END )
+					goto done;
+				parse_ungettoken(parsestate);
+				continue;
+			case CMD_BACKGROUND:
+				cmd->controlop = CMD_BACKGROUND;
+				parse_gettoken(parsestate, &token);
+				if ( token.type == TOK_END )
+					goto done;
+				parse_ungettoken(parsestate);
+				continue;
+			case CMD_PIPE:
+				cmd->controlop = CMD_PIPE;
+				continue; //??
+			case CMD_AND:
+				cmd->controlop = CMD_AND;
+				parse_gettoken(parsestate, &token);
+				if ( token.type == TOK_END )
+					goto error;
+				parse_ungettoken(parsestate);
+				continue;
+			case CMD_OR:  //huh. same as CMD_AND?
+				cmd->controlop = CMD_OR;
+				parse_gettoken(parsestate, &token);
+				if ( token.type == TOK_END )
+					goto error;
+				parse_ungettoken(parsestate);
+				continue;
+			case TOK_CLOSE_PAREN:
+				if (in_parens)
+					goto done;
+				else
+					goto error;
+			case TOK_END:
+				if (in_parens)
+					goto error;
+				else
+					goto done;
+			default:    //or CMD_END??
+				cmd->controlop = CMD_END;
+				break;
+		}
+		
+		
+		
+		/* END new code */
 		goto done;
 	}
 
@@ -358,7 +516,7 @@ void
 command_print(command_t *cmd, int indent)
 {
 	int argc, i;
-
+	
 	if (cmd == NULL) {
 		printf("%*s[NULL]\n", indent, "");
 		return;
@@ -387,7 +545,7 @@ command_print(command_t *cmd, int indent)
 		printf("\n");
 		command_print(cmd->subshell, indent + 2);
 	}
-
+	
 	printf("] ");
 	switch (cmd->controlop) {
 	case TOK_SEMICOLON:

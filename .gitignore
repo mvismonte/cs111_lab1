@@ -6,4 +6,5 @@ lab_1a/lab_1a.xcodeproj/*
 .*
 !.gitignore
 cmdline
+ospsh
 *.tar.gz
