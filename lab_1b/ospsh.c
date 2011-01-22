@@ -215,7 +215,7 @@ command_line_exec(command_t *cmdlist)
 
             case CMD_BACKGROUND:
             case CMD_PIPE:
-                cmd_line_status = 0;
+                cmd_status = 0;
                 break;
         }
 
