@@ -82,13 +82,17 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	 int
      execve(const char *path, char *const argv[], char *const envp[]);
 	 */
-	
+	int child_status = 0;
 	
 	pid = fork();
+    if (pid == -1) {
+        return -1; //or error
+    }
 	
 	if (pid == 0) {
 		//printf("Executing Child\n");
 		int fd;
+        //close(pipefd[1]);   //close unused write end
         if (*pass_pipefd != STDIN_FILENO)
             dup2(*pass_pipefd, 0);
         else if (cmd->redirect_filename[0]) {
@@ -97,6 +101,9 @@ command_exec(command_t *cmd, int *pass_pipefd)
 			close(fd);
 			
 		}
+        //else
+        //    dup2(STDIN_FILENO, 0);
+
         if (cmd->controlop == CMD_PIPE)
             dup2(pipefd[1], 1);
         else if (cmd->redirect_filename[1]) {
@@ -105,16 +112,29 @@ command_exec(command_t *cmd, int *pass_pipefd)
 			close(fd);
 			
 		}
+        //else
+        //    dup2(STDOUT_FILENO, 1);
 		if (cmd->redirect_filename[2]) {
 			fd = open(cmd->redirect_filename[2], O_CREAT|O_WRONLY);
 			dup2(fd, 2);
 			close(fd);
 		}
 		printf("Status: %d\n", execvp(cmd->argv[0], &cmd->argv[0]));
-	} else {
+        close(pipefd[0]);
+        close(pipefd[1]);
+	} 
+    else { }/*
+        //waitpid(0, &child_status, 0);
+        close(pipefd[0]);
+        if (cmd->controlop == CMD_PIPE)
+            *pass_pipefd = pipefd[1];
+        else
+            *pass_pipefd = STDIN_FILENO;
+        close(pipefd[1]);
+
 		//printf("Executing Parent\n");
-        //*pass_pipefd = pipefd[1];  // um
-	}
+        // *pass_pipefd = pipefd[1];  // um
+	}*/
 	
 	
 	
