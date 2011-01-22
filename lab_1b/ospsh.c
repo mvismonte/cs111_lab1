@@ -123,8 +123,8 @@ command_exec(command_t *cmd, int *pass_pipefd)
         close(pipefd[0]);
         close(pipefd[1]);
 	} 
-    else { }/*
-        //waitpid(0, &child_status, 0);
+    else { 
+        waitpid(0, &child_status, 0);
         close(pipefd[0]);
         if (cmd->controlop == CMD_PIPE)
             *pass_pipefd = pipefd[1];
@@ -134,7 +134,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 
 		//printf("Executing Parent\n");
         // *pass_pipefd = pipefd[1];  // um
-	}*/
+	}
 	
 	
 	
