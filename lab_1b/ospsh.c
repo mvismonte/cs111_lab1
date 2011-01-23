@@ -83,11 +83,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	
 	if (pid == 0) {
 		//printf("Executing Child\n");
-<<<<<<< Updated upstream
-		//if (cmd->subshell) {
-=======
 		//if (cmd->subshell)
->>>>>>> Stashed changes
 		//	command_line_exec(cmd->subshell);
 		
 		int fd;
