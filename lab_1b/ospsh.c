@@ -83,17 +83,20 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	
 	if (pid == 0) {
 		//printf("Executing Child\n");
-		//if (cmd->subshell)
-		//	command_line_exec(cmd->subshell);
+		if (cmd->subshell)
+			command_line_exec(cmd->subshell);
+		
 		
 		int fd;
         //if (*pass_pipefd != STDIN_FILENO) {
-        //    waitpid(-1, &child_status, 0);
-            dup2(*pass_pipefd, 0);
+		//waitpid(-1, &child_status, 0);
+		dup2(*pass_pipefd, 0);
         
+		
         if (cmd->redirect_filename[0]) {
 			fd = open(cmd->redirect_filename[0], O_RDONLY);
 			dup2(fd, 0);
+			printf("Number: %d\n", fd);
 			close(fd);
 		}
         //else
