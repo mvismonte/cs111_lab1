@@ -83,16 +83,12 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	
 	if (pid == 0) {
 		//printf("Executing Child\n");
-<<<<<<< Updated upstream
-		//if (cmd->subshell) {
-=======
 		//if (cmd->subshell)
->>>>>>> Stashed changes
 		//	command_line_exec(cmd->subshell);
 		
 		int fd;
         //if (*pass_pipefd != STDIN_FILENO) {
-            waitpid(-1, &child_status, 0);
+        //    waitpid(-1, &child_status, 0);
             dup2(*pass_pipefd, 0);
         
         if (cmd->redirect_filename[0]) {
@@ -133,6 +129,8 @@ command_exec(command_t *cmd, int *pass_pipefd)
     else {
         //waitpid(0, &child_status, 0);
         //close(pipefd[0]);
+        if (*pass_pipefd != STDIN_FILENO)
+            close(*pass_pipefd);
         if (cmd->controlop == CMD_PIPE)
             *pass_pipefd = pipefd[0];
         else
@@ -145,12 +143,12 @@ command_exec(command_t *cmd, int *pass_pipefd)
         // Implementing `cd`
 		if (cmd->argv[0]) {
 			if (strcmp(cmd->argv[0], "cd") == 0) {
-				chdir(cmd->argv[1]? cmd->argv[1] : getenv("HOME"));
+                //printf("IN CD");
+				chdir(cmd->argv[1] ? cmd->argv[1] : getenv("HOME"));
 			} else if (strcmp(cmd->argv[0], "exit") == 0) {
 				exit(0);
 			}
 		}
-
         //pseudo
         // if cmd is cd
         // get arg
