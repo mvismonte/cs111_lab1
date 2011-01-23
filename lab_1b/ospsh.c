@@ -73,15 +73,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 //        if (pid == 0) {
 //            dup2(pipefd[0], 0);
 	}
-
-
-	/*
-	 pid_t
-     fork(void);
-	 
-	 int
-     execve(const char *path, char *const argv[], char *const envp[]);
-	 */
+	
 	int child_status = 0;
 	
 	pid = fork();
@@ -91,7 +83,11 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	
 	if (pid == 0) {
 		//printf("Executing Child\n");
+<<<<<<< Updated upstream
 		//if (cmd->subshell) {
+=======
+		//if (cmd->subshell)
+>>>>>>> Stashed changes
 		//	command_line_exec(cmd->subshell);
 		
 		int fd;
@@ -128,7 +124,10 @@ command_exec(command_t *cmd, int *pass_pipefd)
 
         close(pipefd[0]);
         //close(pipefd[1]);
-		printf("Status: %d\n", execvp(cmd->argv[0], &cmd->argv[0]));
+
+			//printf("other detected!");
+		execvp(cmd->argv[0], &cmd->argv[0]);
+		
 
 	} 
     else {
@@ -144,6 +143,13 @@ command_exec(command_t *cmd, int *pass_pipefd)
         // *pass_pipefd = pipefd[1];  // um*/
 
         // Implementing `cd`
+		if (cmd->argv[0]) {
+			if (strcmp(cmd->argv[0], "cd") == 0) {
+				chdir(cmd->argv[1]? cmd->argv[1] : getenv("HOME"));
+			} else if (strcmp(cmd->argv[0], "exit") == 0) {
+				exit(0);
+			}
+		}
 
         //pseudo
         // if cmd is cd
