@@ -128,7 +128,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 
 	} 
     else {
-        waitpid(0, &child_status, 0);
+        //waitpid(0, &child_status, 0);
         //close(pipefd[0]);
         if (cmd->controlop == CMD_PIPE)
             *pass_pipefd = pipefd[0];
@@ -138,6 +138,13 @@ command_exec(command_t *cmd, int *pass_pipefd)
 
 		//printf("Executing Parent\n");
         // *pass_pipefd = pipefd[1];  // um*/
+
+        // Implementing `cd`
+
+        //pseudo
+        // if cmd is cd
+        // get arg
+
 	}
 	
 	
@@ -255,12 +262,12 @@ command_line_exec(command_t *cmdlist)
                 break;
             case CMD_AND:
                 waitpid(id, &wp_status, 0);
-                if (WEXITSTATUS(wp_status))
+                if (WEXITSTATUS(wp_status) == EXIT_FAILURE)
                     goto done;
                 break;
             case CMD_OR:
                 waitpid(id, &wp_status, 0);
-                if (!WEXITSTATUS(wp_status))
+                if (WEXITSTATUS(wp_status) == EXIT_SUCCESS)
                     goto done;
                 break;
 
