@@ -99,12 +99,11 @@ command_exec(command_t *cmd, int *pass_pipefd)
 			printf("Number: %d\n", fd);
 			close(fd);
 		}
-        //else
-        //    dup2(STDIN_FILENO, 0);
 
-        if (cmd->controlop == CMD_PIPE)
+        if (cmd->controlop == CMD_PIPE) {
             dup2(pipefd[1], 1);
-        else if (cmd->redirect_filename[1]) {
+			close(pipefd[0]);
+        } else if (cmd->redirect_filename[1]) {
             *pass_pipefd = STDIN_FILENO;
 			fd = open(cmd->redirect_filename[1], O_CREAT|O_WRONLY);
 			dup2(fd, 1);
@@ -121,10 +120,6 @@ command_exec(command_t *cmd, int *pass_pipefd)
 			close(fd);
 		}
 
-        close(pipefd[0]);
-        //close(pipefd[1]);
-
-			//printf("other detected!");
 		execvp(cmd->argv[0], &cmd->argv[0]);
 		
 
@@ -132,13 +127,16 @@ command_exec(command_t *cmd, int *pass_pipefd)
     else {
         //waitpid(0, &child_status, 0);
         //close(pipefd[0]);
-        if (*pass_pipefd != STDIN_FILENO)
+        if (*pass_pipefd != STDIN_FILENO) {
             close(*pass_pipefd);
-        if (cmd->controlop == CMD_PIPE)
+			//close(pipefd[1]);
+		}
+        if (cmd->controlop == CMD_PIPE) {
             *pass_pipefd = pipefd[0];
-        else
+			close(pipefd[1]);
+        } else
             *pass_pipefd = STDIN_FILENO;
-        close(pipefd[1]);
+        
 
 		//printf("Executing Parent\n");
         // *pass_pipefd = pipefd[1];  // um*/

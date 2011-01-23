@@ -62,6 +62,7 @@ main(int argc, char *argv[])
 				perror("cs111_winter11");
 			break;
 		}
+		//printf("%s\n", input);
 
 		// build the command list
 		parse_init(&parsestate, input);
@@ -81,9 +82,10 @@ main(int argc, char *argv[])
 
 		// and run it!
 		if (cmdlist)
-			command_line_exec(cmdlist);
+			r = command_line_exec(cmdlist);
+		command_free(cmdlist);
 
 	}
 
-	return 0;
+	return r;//doing this for now
 }
