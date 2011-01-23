@@ -76,16 +76,22 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	
 	int child_status = 0;
 	
+    char d_buf[10];
+
+    //getcwd(d_buf, 9);
+    //printf("Pre: %s&", d_buf);
 	pid = fork();
     if (pid == -1) {
         return -1; //or error
     }
-	
+
 	if (pid == 0) {
 		//printf("Executing Child\n");
 		if (cmd->subshell)
 			command_line_exec(cmd->subshell);
-		
+	    //getcwd(d_buf, 9);
+        //printf("C: %s&", d_buf);
+
 		
 		int fd;
         //if (*pass_pipefd != STDIN_FILENO) {
@@ -119,12 +125,13 @@ command_exec(command_t *cmd, int *pass_pipefd)
 			dup2(fd, 2);
 			close(fd);
 		}
-
 		execvp(cmd->argv[0], &cmd->argv[0]);
-		
-
 	} 
     else {
+        //getcwd(d_buf, 9);
+        //printf("P: %s&", d_buf);
+
+    
         //waitpid(0, &child_status, 0);
         //close(pipefd[0]);
         if (*pass_pipefd != STDIN_FILENO) {
@@ -260,7 +267,7 @@ command_line_exec(command_t *cmdlist)
 
 		/* Your code here. */
         pid_t id = command_exec(cmdlist, &pipefd);
-        if (id < 0)
+        if (id <= 0)
             abort();
 
         switch(cmdlist->controlop)
