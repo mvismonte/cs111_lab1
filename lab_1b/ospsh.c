@@ -91,8 +91,8 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	
 	if (pid == 0) {
 		//printf("Executing Child\n");
-		if (cmd->subshell) {
-			command_line_exec(cmd->subshell);
+		//if (cmd->subshell) {
+		//	command_line_exec(cmd->subshell);
 		
 		int fd;
         //if (*pass_pipefd != STDIN_FILENO) {
@@ -266,22 +266,23 @@ command_line_exec(command_t *cmdlist)
                 break;
             case CMD_AND:
                 waitpid(id, &wp_status, 0);
-                if (WEXITSTATUS(wp_status) == EXIT_FAILURE)
+                if (WEXITSTATUS(wp_status) != 0) {
+                    cmd_status = WEXITSTATUS(wp_status);
                     goto done;
+                }
                 break;
             case CMD_OR:
                 waitpid(id, &wp_status, 0);
-                if (WEXITSTATUS(wp_status) == EXIT_SUCCESS)
+                if (WEXITSTATUS(wp_status) == 0) {
+                    cmd_status = 0; // EXIT_SUCCESS
                     goto done;
+                }
                 break;
-
             case CMD_BACKGROUND:
             case CMD_PIPE:
                 cmd_status = 0;
                 break;
         }
-
-
 		cmdlist = cmdlist->next;
 	}
 
