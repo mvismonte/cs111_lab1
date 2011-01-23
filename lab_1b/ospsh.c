@@ -87,8 +87,10 @@ command_exec(command_t *cmd, int *pass_pipefd)
 
 	if (pid == 0) {
 		//printf("Executing Child\n");
-		if (cmd->subshell)
+		if (cmd->subshell) {
+            
 			command_line_exec(cmd->subshell);
+        }
 	    //getcwd(d_buf, 9);
         //printf("C: %s&", d_buf);
 
@@ -295,6 +297,8 @@ command_line_exec(command_t *cmdlist)
                 cmd_status = 0;
                 break;
         }
+        printf("statul: %d\n", wp_status);
+        printf("status: %d\n", cmd_status);
 		cmdlist = cmdlist->next;
 	}
 
