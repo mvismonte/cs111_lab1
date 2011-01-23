@@ -92,14 +92,14 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	if (pid == 0) {
 		//printf("Executing Child\n");
 		int fd;
-        //close(pipefd[1]);   //close unused write end
-        if (*pass_pipefd != STDIN_FILENO)
+        //if (*pass_pipefd != STDIN_FILENO) {
+            waitpid(-1, &child_status, 0);
             dup2(*pass_pipefd, 0);
-        else if (cmd->redirect_filename[0]) {
+        
+        if (cmd->redirect_filename[0]) {
 			fd = open(cmd->redirect_filename[0], O_RDONLY);
 			dup2(fd, 0);
 			close(fd);
-			
 		}
         //else
         //    dup2(STDIN_FILENO, 0);
@@ -107,33 +107,37 @@ command_exec(command_t *cmd, int *pass_pipefd)
         if (cmd->controlop == CMD_PIPE)
             dup2(pipefd[1], 1);
         else if (cmd->redirect_filename[1]) {
+            *pass_pipefd = STDIN_FILENO;
 			fd = open(cmd->redirect_filename[1], O_CREAT|O_WRONLY);
 			dup2(fd, 1);
-			close(fd);
-			
+			close(fd);	
 		}
-        //else
-        //    dup2(STDOUT_FILENO, 1);
+        else {
+            *pass_pipefd = STDIN_FILENO;
+            dup2(STDOUT_FILENO, 1);
+        }
+
 		if (cmd->redirect_filename[2]) {
 			fd = open(cmd->redirect_filename[2], O_CREAT|O_WRONLY);
 			dup2(fd, 2);
 			close(fd);
 		}
+        close(pipefd[0]);
+        //close(pipefd[1]);
 		printf("Status: %d\n", execvp(cmd->argv[0], &cmd->argv[0]));
-        close(pipefd[0]);
-        close(pipefd[1]);
+
 	} 
-    else { 
+    else {
         waitpid(0, &child_status, 0);
-        close(pipefd[0]);
+        //close(pipefd[0]);
         if (cmd->controlop == CMD_PIPE)
-            *pass_pipefd = pipefd[1];
+            *pass_pipefd = pipefd[0];
         else
             *pass_pipefd = STDIN_FILENO;
         close(pipefd[1]);
 
 		//printf("Executing Parent\n");
-        // *pass_pipefd = pipefd[1];  // um
+        // *pass_pipefd = pipefd[1];  // um*/
 	}
 	
 	
