@@ -91,6 +91,9 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	
 	if (pid == 0) {
 		//printf("Executing Child\n");
+		if (cmd->subshell) {
+			command_line_exec(cmd->subshell);
+		
 		int fd;
         //if (*pass_pipefd != STDIN_FILENO) {
             waitpid(-1, &child_status, 0);
@@ -122,6 +125,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 			dup2(fd, 2);
 			close(fd);
 		}
+
         close(pipefd[0]);
         //close(pipefd[1]);
 		printf("Status: %d\n", execvp(cmd->argv[0], &cmd->argv[0]));
