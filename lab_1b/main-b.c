@@ -40,6 +40,8 @@ main(int argc, char *argv[])
 	int quiet = 0;
 	char input[BUFSIZ];
 	int r = 0;
+    
+    atexit(kill_makeq_process);//make sure to kill makeq process if it's running
 
 	// Check for '-q' option: be quiet -- print no prompts
 	if (argc > 1 && strcmp(argv[1], "-q") == 0)

@@ -68,11 +68,11 @@ command_exec(command_t *cmd, int *pass_pipefd)
     if (cmd->argv[0] == NULL && cmd->subshell == NULL)
         return -1;
     
-    if (strcmp(cmd->argv[0], "makeq")) {
+    if (strcmp(cmd->argv[0], "makeq") == 0) {
         if (cmd->argv[1] != NULL) {
             MAKEQ = makeq_alloc();
             pipe(MAKEQ->pipe);
-            strcpy(MAKEQ->name, cmd->argv[1]);
+            //strcpy(MAKEQ->name, cmd->argv[1]);
         } else {
             return -1;
         }
@@ -94,9 +94,15 @@ command_exec(command_t *cmd, int *pass_pipefd)
     }
     
 	if (pid == 0) {
-        if (strcmp(cmd->argv[0], "makeq")) {
-            int current_jobs;
-            
+        if (strcmp(cmd->argv[0], "makeq") == 0) {
+            //int current_jobs = 0;
+            FILE *stream = fdopen(MAKEQ->pipe[0], "r");
+            char buffer[512];
+            while (1) {
+                if (fgets(buffer, 512, stream)) {
+                    printf("Added! (%s)\n", buffer);
+                }
+            }
         } else {
             int fd;
             dup2(*pass_pipefd, 0);
@@ -140,12 +146,23 @@ command_exec(command_t *cmd, int *pass_pipefd)
                     }
                     exit(EXIT_SUCCESS);
                 }
+            } else if (strcmp(cmd->argv[0], "q") == 0) {
+                int i;
+                for (i = 1; i < MAXTOKENS + 1 || cmd->argv[i] != NULL; i++) {
+                    puts(cmd->argv[i]);
+                    puts(" ");
+                }
+                puts("\n");
+                exit(0);
             } else {
                 execvp(cmd->argv[0], &cmd->argv[0]);
             }
         }
 	} 
     else {
+        if (strcmp(cmd->argv[0], "makeq") == 0)
+            MAKEQ->pid = pid;
+            
         if (*pass_pipefd != STDIN_FILENO) {
             close(*pass_pipefd);
 		}
@@ -275,8 +292,10 @@ command_line_exec(command_t *cmdlist)
 		{
 			case CMD_END:
 			case CMD_SEMICOLON:
-				waitpid(id, &wp_status, 0);
-				cmd_status = WEXITSTATUS(wp_status);
+                if (strcmp(cmdlist->argv[0], "makeq") != 0) {
+                    waitpid(id, &wp_status, 0);
+                    cmd_status = WEXITSTATUS(wp_status);
+                }
 				break;
 			case CMD_AND:
 				waitpid(id, &wp_status, 0);

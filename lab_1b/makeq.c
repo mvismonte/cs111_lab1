@@ -9,8 +9,29 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include "makeq.h"
 
+
+
+qcommand_t *qcommand_alloc(void) {
+    // Allocate memory for the command
+	qcommand_t *qcommand = (qcommand_t *) malloc(sizeof(*qcommand));
+	if (!qcommand)
+		return NULL;
+	
+	// Set all its fields to 0
+	memset(qcommand, 0, sizeof(*qcommand));
+    
+	return qcommand;
+}
+
+void
+qcommand_free(qcommand_t *qcommand) {
+    free(qcommand);
+}
+
+void qcommand_free(qcommand_t *qcommand);
 
 makeq_t *
 makeq_alloc(void)
@@ -30,6 +51,12 @@ void
 makeq_free(makeq_t *q) {
     free(q->name);
     free(q);
+}
+
+void kill_makeq_process(void) {
+    if (MAKEQ != NULL) {
+        kill(MAKEQ->pid, SIGSTOP);
+    }
 }
 
 //Adds a command to the queue
