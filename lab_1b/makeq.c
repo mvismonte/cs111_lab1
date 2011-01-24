@@ -46,7 +46,14 @@ int add_command(makeq_t *makeq, command_t *cmd) {
 }
 
 //Starts up processes in the queue if we have enough space
-void kick_queue(makeq_t *makeq);
+void kick_queue(makeq_t *makeq) {
+    if (makeq->num_jobs_running < makeq->max_jobs) {
+        //pipe kickstart makeq->last_run->next;
+        makeq->num_jobs_running++;
+    }
+    
+
+}
 
 //Reclaims processes after they have finished running, also gets rid of zombie processes
 void find_finished_commands(makeq_t *makeq);
