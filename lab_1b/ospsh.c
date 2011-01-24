@@ -98,10 +98,13 @@ command_exec(command_t *cmd, int *pass_pipefd)
             //int current_jobs = 0;
             FILE *stream = fdopen(MAKEQ->pipe[0], "r");
             char buffer[512];
+            fcntl(MAKEQ->pipe[0], F_SETFL, O_NONBLOCK | fcntl(MAKEQ->pipe[0], F_GETFL, 0));
             while (1) {
+                //printf("loop\n");
                 if (fgets(buffer, 512, stream)) {
-                    printf("Added! (%s)\n", buffer);
+                    printf("Added! (%s)", buffer);
                 }
+                //sleep(1);
             }
         } else {
             int fd;
@@ -147,12 +150,12 @@ command_exec(command_t *cmd, int *pass_pipefd)
                     exit(EXIT_SUCCESS);
                 }
             } else if (strcmp(cmd->argv[0], "q") == 0) {
+                FILE *stream = fdopen(MAKEQ->pipe[1], "a");
                 int i;
-                for (i = 1; i < MAXTOKENS + 1 || cmd->argv[i] != NULL; i++) {
-                    puts(cmd->argv[i]);
-                    puts(" ");
+                for (i = 1; i < MAXTOKENS + 1 && cmd->argv[i] != NULL; i++) {
+                    fputs(cmd->argv[i], stream);
                 }
-                puts("\n");
+                fclose(stream);
                 exit(0);
             } else {
                 execvp(cmd->argv[0], &cmd->argv[0]);
