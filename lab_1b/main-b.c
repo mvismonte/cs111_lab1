@@ -30,7 +30,6 @@
  *   types a command.  But it is NOT OK for zombies to hang around forever.
  */
 
-
 /*
  * Main function for shell.
  */
@@ -48,6 +47,7 @@ main(int argc, char *argv[])
 	while (!feof(stdin)) {
 		parsestate_t parsestate;
 		command_t *cmdlist;
+        CHILD_DIED = 0;s
 		// Print the prompt
 		if (!quiet) {
 			printf("cs111_winter11$ ");
@@ -61,8 +61,7 @@ main(int argc, char *argv[])
 				// error, preceded by 'cs111_winter11: '.
 				perror("cs111_winter11");
 			break;
-		}
-		//printf("%s\n", input);
+		} //need to figure out how signals can be used
 
 		// build the command list
 		parse_init(&parsestate, input);

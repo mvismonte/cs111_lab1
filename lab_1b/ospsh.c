@@ -86,12 +86,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
     }
 
 	if (pid == 0) {
-		//printf("Executing Child\n");
-		
-	    //getcwd(d_buf, 9);
-        //printf("C: %s&", d_buf);
 
-		
 		int fd;
         //if (*pass_pipefd != STDIN_FILENO) {
 		//waitpid(-1, &child_status, 0);
