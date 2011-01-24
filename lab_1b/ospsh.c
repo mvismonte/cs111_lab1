@@ -101,7 +101,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
         if (cmd->redirect_filename[0]) {
 			fd = open(cmd->redirect_filename[0], O_RDONLY);
 			dup2(fd, 0);
-			printf("Number: %d\n", fd);
+			//printf("Number: %d\n", fd);
 			close(fd);
 		}
 
@@ -110,7 +110,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 			close(pipefd[0]);
         } else if (cmd->redirect_filename[1]) {
             *pass_pipefd = STDIN_FILENO;
-			fd = open(cmd->redirect_filename[1], O_CREAT|O_WRONLY, 0666);
+			fd = open(cmd->redirect_filename[1], O_TRUNC|O_CREAT|O_WRONLY, 0666);
 			dup2(fd, 1);
 			close(fd);	
 		}
