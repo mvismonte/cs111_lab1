@@ -127,7 +127,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 		
 		if (cmd->subshell) {
 			int exit_status = command_line_exec(cmd->subshell);
-			printf("pid %d: Exiting with value: %d(%d)\n", getpid(), exit_status, EXIT_FAILURE);
+			//printf("pid %d: Exiting with value: %d(%d)\n", getpid(), exit_status, EXIT_FAILURE);
 			_exit(exit_status ? EXIT_FAILURE : EXIT_SUCCESS);
 		} else if (strcmp(cmd->argv[0], "cd") == 0) {
 			if (cmd->argv[1]) {
@@ -135,7 +135,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 				if (fd != -1)
 					close(fd);
 				else {
-					printf("cd: %s: does not exist\n", cmd->argv[1]);
+					//printf("cd: %s: does not exist\n", cmd->argv[1]);
 					exit(EXIT_FAILURE);
 				}
 				exit(EXIT_SUCCESS);
@@ -292,7 +292,7 @@ command_line_exec(command_t *cmdlist)
 			case CMD_END:
 			case CMD_SEMICOLON:
 				waitpid(id, &wp_status, 0);
-				cmd_status = wp_status;
+				cmd_status = WEXITSTATUS(wp_status);
 				break;
 			case CMD_AND:
 				waitpid(id, &wp_status, 0);
@@ -315,8 +315,8 @@ command_line_exec(command_t *cmdlist)
 		}
 		//printf("statul: %d\n", wp_status);
         //printf("status: %d\n", cmd_status);
-		printf("%s(%d): controlop = %d, wp_status = %d, cmd_status = %d\n", 
-					cmdlist->argv[0], id, cmdlist->controlop, wp_status, cmd_status);
+		//printf("%s(%d): controlop = %d, wp_status = %d, cmd_status = %d\n", 
+		//			cmdlist->argv[0], id, cmdlist->controlop, wp_status, cmd_status);
 		cmdlist = cmdlist->next;
 	}
 
