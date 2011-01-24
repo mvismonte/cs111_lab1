@@ -128,7 +128,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 		if (cmd->subshell) {
 			int exit_status = command_line_exec(cmd->subshell);
 			//printf("pid %d: Exiting with value: %d(%d)\n", getpid(), exit_status, EXIT_FAILURE);
-			_exit(exit_status ? EXIT_FAILURE : EXIT_SUCCESS);
+			exit(exit_status ? EXIT_FAILURE : EXIT_SUCCESS);
 		} else if (strcmp(cmd->argv[0], "cd") == 0) {
 			if (cmd->argv[1]) {
 				int fd = open(cmd->argv[1], O_RDONLY);
