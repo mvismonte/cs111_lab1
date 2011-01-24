@@ -110,7 +110,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 			close(pipefd[0]);
         } else if (cmd->redirect_filename[1]) {
             *pass_pipefd = STDIN_FILENO;
-			fd = open(cmd->redirect_filename[1], O_CREAT|O_WRONLY);
+			fd = open(cmd->redirect_filename[1], O_CREAT|O_WRONLY, 0666);
 			dup2(fd, 1);
 			close(fd);	
 		}
@@ -120,7 +120,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
         }
 
 		if (cmd->redirect_filename[2]) {
-			fd = open(cmd->redirect_filename[2], O_CREAT|O_WRONLY);
+			fd = open(cmd->redirect_filename[2], O_CREAT|O_WRONLY, 0666);
 			dup2(fd, 2);
 			close(fd);
 		}
