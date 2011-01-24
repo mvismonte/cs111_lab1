@@ -65,96 +65,89 @@ command_exec(command_t *cmd, int *pass_pipefd)
 
 	// Create a pipe, if this command is the left-hand side of a pipe.
 	// Return -1 if the pipe fails.
+    if (cmd->argv[0] == NULL && cmd->subshell == NULL)
+        return -1;
+    
+    if (strcmp(cmd->argv[0], "makeq")) {
+        if (cmd->argv[1] != NULL) {
+            MAKEQ = makeq_alloc();
+            pipe(MAKEQ->pipe);
+            strcpy(MAKEQ->name, cmd->argv[1]);
+        } else {
+            return -1;
+        }
+        if (cmd->argv[2] != NULL) {
+            MAKEQ->max_jobs = atoi(cmd->argv[2]);
+        } else {
+            return -1;
+        }
+    }
+    
 	if (cmd->controlop == CMD_PIPE) {
-		/* Your code here. */
 		if (pipe(pipefd) == -1)
 			return -1;
-//        pid = fork();
-//        if (pid == 0) {
-//            dup2(pipefd[0], 0);
 	}
-	
-	int child_status = 0;
-	
-    char d_buf[10];
-
-    //getcwd(d_buf, 9);
-    //printf("Pre: %s&", d_buf);
+    
 	pid = fork();
     if (pid == -1) {
         return -1; //or error
     }
-
+    
 	if (pid == 0) {
-		//printf("Executing Child\n");
-		
-	    //getcwd(d_buf, 9);
-        //printf("C: %s&", d_buf);
-
-		
-		int fd;
-        //if (*pass_pipefd != STDIN_FILENO) {
-		//waitpid(-1, &child_status, 0);
-		dup2(*pass_pipefd, 0);
-        
-		
-        if (cmd->redirect_filename[0]) {
-			fd = open(cmd->redirect_filename[0], O_RDONLY);
-			dup2(fd, 0);
-			//printf("Number: %d\n", fd);
-			close(fd);
-		}
-
-        if (cmd->controlop == CMD_PIPE) {
-            dup2(pipefd[1], 1);
-			close(pipefd[0]);
-        } else if (cmd->redirect_filename[1]) {
-            *pass_pipefd = STDIN_FILENO;
-			fd = open(cmd->redirect_filename[1], O_TRUNC|O_CREAT|O_WRONLY, 0666);
-			dup2(fd, 1);
-			close(fd);	
-		}
-        else {
-            *pass_pipefd = STDIN_FILENO;
-            dup2(STDOUT_FILENO, 1);
+        if (strcmp(cmd->argv[0], "makeq")) {
+            int current_jobs;
+            
+        } else {
+            int fd;
+            dup2(*pass_pipefd, 0);
+            
+            if (cmd->redirect_filename[0]) {
+                fd = open(cmd->redirect_filename[0], O_RDONLY);
+                dup2(fd, 0);
+                close(fd);
+            }
+            
+            if (cmd->controlop == CMD_PIPE) {
+                dup2(pipefd[1], 1);
+                close(pipefd[0]);
+            } else if (cmd->redirect_filename[1]) {
+                *pass_pipefd = STDIN_FILENO;
+                fd = open(cmd->redirect_filename[1], O_TRUNC|O_CREAT|O_WRONLY, 0666);
+                dup2(fd, 1);
+                close(fd);	
+            }
+            else {
+                *pass_pipefd = STDIN_FILENO;
+                dup2(STDOUT_FILENO, 1);
+            }
+            
+            if (cmd->redirect_filename[2]) {
+                fd = open(cmd->redirect_filename[2], O_CREAT|O_WRONLY, 0666);
+                dup2(fd, 2);
+                close(fd);
+            }
+            
+            if (cmd->subshell) {
+                int exit_status = command_line_exec(cmd->subshell);
+                exit(exit_status ? EXIT_FAILURE : EXIT_SUCCESS);
+            } else if (strcmp(cmd->argv[0], "cd") == 0) {
+                if (cmd->argv[1]) {
+                    int fd = open(cmd->argv[1], O_RDONLY);
+                    if (fd != -1)
+                        close(fd);
+                    else {
+                        exit(EXIT_FAILURE);
+                    }
+                    exit(EXIT_SUCCESS);
+                }
+            } else {
+                execvp(cmd->argv[0], &cmd->argv[0]);
+            }
         }
-
-		if (cmd->redirect_filename[2]) {
-			fd = open(cmd->redirect_filename[2], O_CREAT|O_WRONLY, 0666);
-			dup2(fd, 2);
-			close(fd);
-		}
-		
-		if (cmd->subshell) {
-			int exit_status = command_line_exec(cmd->subshell);
-			//printf("pid %d: Exiting with value: %d(%d)\n", getpid(), exit_status, EXIT_FAILURE);
-			exit(exit_status ? EXIT_FAILURE : EXIT_SUCCESS);
-		} else if (strcmp(cmd->argv[0], "cd") == 0) {
-			if (cmd->argv[1]) {
-				int fd = open(cmd->argv[1], O_RDONLY);
-				if (fd != -1)
-					close(fd);
-				else {
-					//printf("cd: %s: does not exist\n", cmd->argv[1]);
-					exit(EXIT_FAILURE);
-				}
-				exit(EXIT_SUCCESS);
-			}
-		} else {
-			//printf("Executing Child\n");
-			execvp(cmd->argv[0], &cmd->argv[0]);
-		}
 	} 
     else {
-        //getcwd(d_buf, 9);
-        //printf("P: %s&", d_buf);
-
-    
-        //waitpid(0, &child_status, 0);
-        //close(pipefd[0]);
         if (*pass_pipefd != STDIN_FILENO) {
             close(*pass_pipefd);
-			//close(pipefd[1]);
 		}
         if (cmd->controlop == CMD_PIPE) {
             *pass_pipefd = pipefd[0];
@@ -162,11 +155,6 @@ command_exec(command_t *cmd, int *pass_pipefd)
         } else
             *pass_pipefd = STDIN_FILENO;
         
-
-		//printf("Executing Parent\n");
-        // *pass_pipefd = pipefd[1];  // um*/
-
-        // Implementing `cd`
 		if (cmd->argv[0]) {
 			if (strcmp(cmd->argv[0], "cd") == 0) {
                 //printf("IN CD");
@@ -175,10 +163,6 @@ command_exec(command_t *cmd, int *pass_pipefd)
 				exit(0);
 			}
 		}
-        //pseudo
-        // if cmd is cd
-        // get arg
-
 	}
 	
 	

@@ -16,17 +16,27 @@ struct qcommand {
     pid_t pid;
 };
 
+/*
 typedef struct {
     int max_jobs;
     qcommand_t *head;
     qcommand_t *last_run;
     int num_jobs_running;
+} makeq_t;*/
+typedef struct {
+    int max_jobs;
+    int pipe[2];
+    char *name;
 } makeq_t;
 
-makeq_t * makeq_alloc(void);
+makeq_t *MAKEQ;
+
+makeq_t *makeq_alloc(void);
+
+void makeq_free(makeq_t *makeq);
 
 //Adds a command to the queue
-int add_command(command_t *cmd);
+int add_command(makeq_t *makeq, command_t *cmd);
 
 //Starts up processes in the queue if we have enough space
 void kick_queue(void);

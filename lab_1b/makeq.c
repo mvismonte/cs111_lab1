@@ -26,9 +26,25 @@ makeq_alloc(void)
 	return makeq;
 }
 
+void
+makeq_free(makeq_t *q) {
+    free(q->name);
+    free(q);
+}
+
 //Adds a command to the queue
-int add_command(command_t *cmd) {
+int add_command(makeq_t *makeq, command_t *cmd) {
+    /*if (makeq == NULL || cmd == NULL)
+        return -2;
     
+    qcommand_t *next = (qcommand_t *) malloc(*next);
+    if (!next)
+        return -1;
+    
+    next->cmd = cmd;
+    next->pid = -1; //set pid to -1 when a process has not been run yet
+    if (*/
+    return 0;
 }
 
 //Starts up processes in the queue if we have enough space
