@@ -68,8 +68,8 @@ main(int argc, char *argv[])
 			printf("cs111_winter11(exit=%d)$ ", r);
 			fflush(stdout);
 		}
-        input[0] = 0; //reset buffer just in case we get an interrupt
-        RECEIVED_EINTR = 0; //check if we got an interrupt
+        //input[0] = 0; //reset buffer just in case we get an interrupt
+        //RECEIVED_EINTR = 0; //check if we got an interrupt
 
 		// Read a string, checking for error or EOF
 		if (fgets(input, BUFSIZ, stdin) == NULL) {
@@ -79,11 +79,12 @@ main(int argc, char *argv[])
                     // error, preceded by 'cs111_winter11: '.
                     perror("cs111_winter11");
                 }
-            break;
+            
             }
+            break;
 		} //need to figure out how signals can be used
         
-        if (input[0] != 0) {
+        //if (input[0] != 0) {
             // build the command list
             parse_init(&parsestate, input);
             
@@ -104,9 +105,9 @@ main(int argc, char *argv[])
             if (cmdlist)
                 r = command_line_exec(cmdlist);
             command_free(cmdlist);
-        }
+        //}
 		
-		while (waitpid(-1, NULL, WNOHANG) > 0)
+		//while (waitpid(-1, NULL, WNOHANG) > 0)
 			/* Try again */;
 
 	}
@@ -117,5 +118,5 @@ main(int argc, char *argv[])
 void sig_child(int intr) {
     /* do nothing */;
     //printf("Interrupt fired\n");
-    RECEIVED_EINTR = 1;
+    //RECEIVED_EINTR = 1;
 }
