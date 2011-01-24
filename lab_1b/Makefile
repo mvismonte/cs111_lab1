@@ -22,7 +22,7 @@ cmdline.o: cmdline.c cmdline.h
 
 makeq.o: makeq.c cmdline.h
 	@echo + cc makeq.c
-	$(V)$(CC) $(CFLAGS) 0c makeq.c
+	$(V)$(CC) $(CFLAGS) -c makeq.c
 
 main-a.o: main-a.c cmdline.h
 	@echo + cc main-a.c

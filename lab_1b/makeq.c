@@ -30,7 +30,7 @@ makeq_alloc(void)
 int add_command(makeq_t *makeq, command_t *cmd) {
     qcommand_t *qcmd = (qcommand_t *) malloc(sizeof(qcommand_t));
     if (!qcmd)
-        return NULL;
+        return 1;
     qcmd->cmd = cmd;
     //pid
 
@@ -43,6 +43,7 @@ int add_command(makeq_t *makeq, command_t *cmd) {
             q_itr = q_itr->next;
         q_itr->next = qcmd;
     }
+    return 0; //should be PID
 }
 
 //Starts up processes in the queue if we have enough space
