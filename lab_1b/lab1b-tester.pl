@@ -315,6 +315,9 @@ $| = 1;
 
 foreach $test (@tests) {
     my($desc, $in, $want) = @$test;
+	if ($ENV{'HOME'} =~ "/Users/") { # if we're in os x, change md5sum to md5
+		$in =~ s/md5sum/md5/g;
+	}
     $ntest++;
     print STDOUT "Running $desc...";
     open(F, ">$tempfile") || die;
