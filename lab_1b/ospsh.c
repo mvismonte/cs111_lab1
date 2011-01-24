@@ -87,10 +87,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 
 	if (pid == 0) {
 		//printf("Executing Child\n");
-		if (cmd->subshell) {
-            
-			command_line_exec(cmd->subshell);
-        }
+		
 	    //getcwd(d_buf, 9);
         //printf("C: %s&", d_buf);
 
@@ -127,13 +124,16 @@ command_exec(command_t *cmd, int *pass_pipefd)
 			dup2(fd, 2);
 			close(fd);
 		}
-		if (strcmp(cmd->argv[0], "cd") == 0) {
+		
+		if (cmd->subshell) {
+			exit( command_line_exec(cmd->subshell) );
+		} else if (strcmp(cmd->argv[0], "cd") == 0) {
 			if (cmd->argv[1]) {
 				int fd = open(cmd->argv[1], O_RDONLY);
 				if (fd != -1)
 					close(fd);
 				else {
-					printf("cd: %s: does not exist\n", cmd->argv[1]);
+					//printf("cd: %s: does not exist\n", cmd->argv[1]);
 					exit(1);
 				}
 				exit(0);
@@ -280,38 +280,37 @@ command_line_exec(command_t *cmdlist)
 		// EXERCISE: Fill out this function!
 		// If an error occurs in command_exec, feel free to abort().
 
-		/* Your code here. */
-        pid_t id = command_exec(cmdlist, &pipefd);
-        if (id <= 0)
-            abort();
-
-        switch(cmdlist->controlop)
-        {
-            case CMD_END:
-            case CMD_SEMICOLON:
-                waitpid(id, &wp_status, 0);
-                break;
-            case CMD_AND:
-                waitpid(id, &wp_status, 0);
-                if (WEXITSTATUS(wp_status) != 0) {
-                    cmd_status = WEXITSTATUS(wp_status);
-                    goto done;
-                }
-                break;
-            case CMD_OR:
-                waitpid(id, &wp_status, 0);
-                if (WEXITSTATUS(wp_status) == 0) {
-                    cmd_status = 0; // EXIT_SUCCESS
-                    goto done;
-                }
-                break;
-            case CMD_BACKGROUND:
-            case CMD_PIPE:
-                cmd_status = 0;
-                break;
-        }
-        printf("statul: %d\n", wp_status);
-        printf("status: %d\n", cmd_status);
+		pid_t id = command_exec(cmdlist, &pipefd);
+		if (id <= 0)
+			abort();
+		
+		switch(cmdlist->controlop)
+		{
+			case CMD_END:
+			case CMD_SEMICOLON:
+				waitpid(id, &wp_status, 0);
+				break;
+			case CMD_AND:
+				waitpid(id, &wp_status, 0);
+				if (WEXITSTATUS(wp_status) != 0) {
+					cmd_status = WEXITSTATUS(wp_status);
+					goto done;
+				}
+				break;
+			case CMD_OR:
+				waitpid(id, &wp_status, 0);
+				if (WEXITSTATUS(wp_status) == 0) {
+					cmd_status = 0; // EXIT_SUCCESS
+					goto done;
+				}
+				break;
+			case CMD_BACKGROUND:
+			case CMD_PIPE:
+				cmd_status = 0;
+				break;
+		}
+		//printf("statul: %d\n", wp_status);
+		//printf("status: %d\n", cmd_status);
 		cmdlist = cmdlist->next;
 	}
 
