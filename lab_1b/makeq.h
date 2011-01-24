@@ -26,7 +26,7 @@ typedef struct {
 makeq_t * makeq_alloc(void);
 
 //Adds a command to the queue
-int add_command(command_t cmd);
+int add_command(command_t *cmd);
 
 //Starts up processes in the queue if we have enough space
 void kick_queue(void);
