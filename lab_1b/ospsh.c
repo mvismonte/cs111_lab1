@@ -16,6 +16,7 @@
 #include <sys/wait.h>
 #include "cmdline.h"
 #include "ospsh.h"
+#include "makeq.h"
 
 /* command_exec(cmd, pass_pipefd)
  *

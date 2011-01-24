@@ -27,15 +27,29 @@ makeq_alloc(void)
 }
 
 //Adds a command to the queue
-int add_command(command_t *cmd) {
-    
+int add_command(makeq_t *makeq, command_t *cmd) {
+    qcommand_t *qcmd = (qcommand_t *) malloc(sizeof(qcommand_t));
+    if (!qcmd)
+        return NULL;
+    qcmd->cmd = cmd;
+    //pid
+
+    if (makeq->head == NULL) {
+        makeq->head = qcmd;
+        makeq->last_run = qcmd;
+    } else {
+        qcommand_t *q_itr = makeq->last_run;
+        while (q_itr->next != NULL) 
+            q_itr = q_itr->next;
+        q_itr->next = qcmd;
+    }
 }
 
 //Starts up processes in the queue if we have enough space
-void kick_queue();
+void kick_queue(makeq_t *makeq);
 
 //Reclaims processes after they have finished running, also gets rid of zombie processes
-void find_finished_commands();
+void find_finished_commands(makeq_t *makeq);
 
 //Runs all the commands in the queue
-void wait_queue();
+void wait_queue(makeq_t *makeq);
