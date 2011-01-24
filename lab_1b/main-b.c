@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <errno.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include "cmdline.h"
@@ -30,6 +31,10 @@
  *   types a command.  But it is NOT OK for zombies to hang around forever.
  */
 
+volatile int RECEIVED_EINTR;
+
+void sig_child(int intr);
+
 /*
  * Main function for shell.
  */
@@ -39,6 +44,17 @@ main(int argc, char *argv[])
 	int quiet = 0;
 	char input[BUFSIZ];
 	int r = 0;
+    RECEIVED_EINTR = 0;
+    
+    struct sigaction act;
+    sigemptyset(&act.sa_mask);
+    act.sa_handler = sig_child;
+    
+    if (sigaction(SIGCHLD, &act, NULL) < 0) 
+    {
+        fprintf(stderr, "sigaction failed\n");
+        return 1;
+    }
 
 	// Check for '-q' option: be quiet -- print no prompts
 	if (argc > 1 && strcmp(argv[1], "-q") == 0)
@@ -47,42 +63,48 @@ main(int argc, char *argv[])
 	while (!feof(stdin)) {
 		parsestate_t parsestate;
 		command_t *cmdlist;
-        CHILD_DIED = 0;s
 		// Print the prompt
 		if (!quiet) {
-			printf("cs111_winter11$ ");
+			printf("cs111_winter11(exit=%d)$ ", r);
 			fflush(stdout);
 		}
+        input[0] = 0; //reset buffer just in case we get an interrupt
+        RECEIVED_EINTR = 0; //check if we got an interrupt
 
 		// Read a string, checking for error or EOF
 		if (fgets(input, BUFSIZ, stdin) == NULL) {
-			if (ferror(stdin))
-				// This function prints a description of the
-				// error, preceded by 'cs111_winter11: '.
-				perror("cs111_winter11");
-			break;
+			if (ferror(stdin)) {
+                if (errno != EINTR) {
+                    // This function prints a description of the
+                    // error, preceded by 'cs111_winter11: '.
+                    perror("cs111_winter11");
+                }
+            break;
+            }
 		} //need to figure out how signals can be used
-
-		// build the command list
-		parse_init(&parsestate, input);
-
-		cmdlist = command_line_parse(&parsestate, 0);
-		if (!cmdlist) {
-			printf("Syntax error\n");
-			continue;
-		}
-
-		// print the command list
-		if (!quiet) {
-			command_print(cmdlist, 0);
-			// why do we need to do this?
-			fflush(stdout);
-		}
-
-		// and run it!
-		if (cmdlist)
-			r = command_line_exec(cmdlist);
-		command_free(cmdlist);
+        
+        if (input[0] != 0) {
+            // build the command list
+            parse_init(&parsestate, input);
+            
+            cmdlist = command_line_parse(&parsestate, 0);
+            if (!cmdlist) {
+                printf("Syntax error\n");
+                continue;
+            }
+            
+            // print the command list
+            if (!quiet) {
+                command_print(cmdlist, 0);
+                // why do we need to do this?
+                fflush(stdout);
+            }
+            
+            // and run it!
+            if (cmdlist)
+                r = command_line_exec(cmdlist);
+            command_free(cmdlist);
+        }
 		
 		while (waitpid(-1, NULL, WNOHANG) > 0)
 			/* Try again */;
@@ -90,4 +112,10 @@ main(int argc, char *argv[])
 	}
 
 	return r;//doing this for now
+}
+
+void sig_child(int intr) {
+    /* do nothing */;
+    //printf("Interrupt fired\n");
+    RECEIVED_EINTR = 1;
 }
