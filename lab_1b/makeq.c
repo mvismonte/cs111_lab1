@@ -7,7 +7,24 @@
  *
  */
 
+#include <stdlib.h>
+#include <string.h>
 #include "makeq.h"
+
+
+makeq_t *
+makeq_alloc(void)
+{
+	// Allocate memory for the command
+	makeq_t *makeq = (makeq_t *) malloc(sizeof(*makeq));
+	if (!makeq)
+		return NULL;
+	
+	// Set all its fields to 0
+	memset(makeq, 0, sizeof(*makeq));
+    
+	return makeq;
+}
 
 //Adds a command to the queue
 int add_command(command_t cmd);

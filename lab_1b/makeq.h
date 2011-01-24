@@ -23,14 +23,16 @@ typedef struct {
     int num_jobs_running;
 } makeq_t;
 
+makeq_t * makeq_alloc(void);
+
 //Adds a command to the queue
 int add_command(command_t cmd);
 
 //Starts up processes in the queue if we have enough space
-void kick_queue();
+void kick_queue(void);
 
 //Reclaims processes after they have finished running, also gets rid of zombie processes
-void find_finished_commands();
+void find_finished_commands(void);
 
 //Runs all the commands in the queue
-void wait_queue();
+void wait_queue(void);
