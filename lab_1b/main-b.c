@@ -84,6 +84,9 @@ main(int argc, char *argv[])
 		if (cmdlist)
 			r = command_line_exec(cmdlist);
 		command_free(cmdlist);
+		
+		while (waitpid(-1, NULL, WNOHANG) > 0)
+			/* Try again */;
 
 	}
 
