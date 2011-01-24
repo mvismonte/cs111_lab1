@@ -17,9 +17,11 @@ struct qcommand {
 };
 
 typedef struct {
+    char* queue_name;
     int max_jobs;
     qcommand_t *head;
     qcommand_t *last_run;
+    qcommand_t *tail;
     int num_jobs_running;
 } makeq_t;
 
@@ -29,7 +31,7 @@ makeq_t * makeq_alloc(void);
 int add_command(command_t *cmd);
 
 //Starts up processes in the queue if we have enough space
-void kick_queue(void);
+void kick_queue2(void);
 
 //Reclaims processes after they have finished running, also gets rid of zombie processes
 void find_finished_commands(void);

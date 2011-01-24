@@ -16,6 +16,35 @@
 #include <sys/wait.h>
 #include "cmdline.h"
 #include "ospsh.h"
+#include "makeq.h"
+
+makeq_t P_QUEUE;
+static pid_t
+command_exec(command_t *cmd, int *pass_pipefd);
+
+void add_cmd(command_t *cmd) {
+    
+//    P_QUEUE.last_run = (qcommand_t *) malloc(sizeof(qcommand_t));
+    qcommand_t temp;
+    temp.cmd = cmd;
+    temp.next = NULL;
+    if (P_QUEUE.last_run == NULL) {
+        P_QUEUE.last_run = &temp;
+    }
+    else {
+       P_QUEUE.last_run->next = &temp;
+    } 
+        
+}
+
+void kick_queue(void) {
+    int pipefd = STDIN_FILENO;
+    while (P_QUEUE.num_jobs_running < P_QUEUE.max_jobs) {
+        command_exec(P_QUEUE.last_run->cmd, &pipefd);
+ //       ++P_QUEUE.num_jobs_running;
+        P_QUEUE.last_run = P_QUEUE.last_run->next;
+    }
+}
 
 /* command_exec(cmd, pass_pipefd)
  *
@@ -140,7 +169,28 @@ command_exec(command_t *cmd, int *pass_pipefd)
 				}
 				exit(EXIT_SUCCESS);
 			}
-		} else {
+		} else if (strcmp(cmd->argv[0], "makeq") == 0) {    //QUEUE
+            P_QUEUE.queue_name = cmd->argv[1];
+//            printf("name: %s", P_QUEUE.queue_name);
+            P_QUEUE.max_jobs = atoi(cmd->argv[2]);
+            P_QUEUE.num_jobs_running = 0;
+//            printf("name: %d", P_QUEUE.max_jobs);
+        } else if (strcmp(cmd->argv[0], "q") == 0) {
+            printf("in0");
+            if (strcmp(cmd->argv[1], P_QUEUE.queue_name) == 0) {
+                printf("in1");
+                
+                if (P_QUEUE.num_jobs_running < P_QUEUE.max_jobs) {
+                    printf("in");
+                    execvp(cmd->argv[2], &cmd->argv[2]);
+                    ++P_QUEUE.num_jobs_running;
+                }
+                else {
+                    add_cmd(cmd);
+                }
+                
+            }
+        } else {
 			//printf("Executing Child\n");
 			execvp(cmd->argv[0], &cmd->argv[0]);
 		}
@@ -237,7 +287,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	//    Hint: Investigate fchdir().
 
 	/* Your code here. */
-
+    kick_queue();
 	// return the child process ID
 	return pid;
 }
@@ -291,18 +341,21 @@ command_line_exec(command_t *cmdlist)
 		{
 			case CMD_END:
 			case CMD_SEMICOLON:
-				waitpid(id, &wp_status, 0);
+                if (strcmp(cmdlist->argv[0], "q") != 0)
+    				waitpid(id, &wp_status, 0);
 				cmd_status = WEXITSTATUS(wp_status);
 				break;
 			case CMD_AND:
-				waitpid(id, &wp_status, 0);
+                if (strcmp(cmdlist->argv[0], "q") != 0)
+    				waitpid(id, &wp_status, 0);
 				if (WEXITSTATUS(wp_status) != 0) {
 					cmd_status = WEXITSTATUS(wp_status);
 					goto done;
 				}
 				break;
 			case CMD_OR:
-				waitpid(id, &wp_status, 0);
+                if (strcmp(cmdlist->argv[0], "q") != 0)
+    				waitpid(id, &wp_status, 0);
 				if (WEXITSTATUS(wp_status) == 0) {
 					cmd_status = 0; // EXIT_SUCCESS
 					goto done;
@@ -322,5 +375,7 @@ command_line_exec(command_t *cmdlist)
 
 done:
 	//printf("%s: cmd_status = %d\n", cmdlist->argv[0], cmd_status);
+    while (P_QUEUE.num_jobs_running > 0)
+        kick_queue();
 	return cmd_status;
 }
