@@ -9,3 +9,14 @@
 
 #include "makeq.h"
 
+//Adds a command to the queue
+int add_command(command_t cmd);
+
+//Starts up processes in the queue if we have enough space
+void kick_queue();
+
+//Reclaims processes after they have finished running, also gets rid of zombie processes
+void find_finished_commands();
+
+//Runs all the commands in the queue
+void wait_queue();
