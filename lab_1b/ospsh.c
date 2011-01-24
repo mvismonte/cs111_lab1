@@ -127,7 +127,20 @@ command_exec(command_t *cmd, int *pass_pipefd)
 			dup2(fd, 2);
 			close(fd);
 		}
-		execvp(cmd->argv[0], &cmd->argv[0]);
+		if (strcmp(cmd->argv[0], "cd") == 0) {
+			if (cmd->argv[1]) {
+				int fd = open(cmd->argv[1], O_RDONLY);
+				if (fd != -1)
+					close(fd);
+				else {
+					printf("cd: %s: does not exist\n", cmd->argv[1]);
+					exit(1);
+				}
+				exit(0);
+			}
+		} else {
+			execvp(cmd->argv[0], &cmd->argv[0]);
+		}
 	} 
     else {
         //getcwd(d_buf, 9);
