@@ -85,9 +85,8 @@ void kick_queue() {
         if (MKQ->running == NULL) {
             MKQ->running = next;
         } else {
-            for (head = MKQ->running; head != NULL; head = head->next)
-                if (head->next == NULL)
-                    head->next= next;
+            next->next = MKQ->running;
+            MKQ->running = next;
         }
         write(next->pipe[1], "X", 1);//start running process
         MKQ->num_running++;
