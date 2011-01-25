@@ -38,15 +38,15 @@ makeq_t *makeq_alloc(void);
 void makeq_free(makeq_t *makeq);
 
 //Adds a command to the queue
-int add_command(makeq_t *makeq, command_t *cmd);
+int add_command(qcommand_t *to_q);
 
 //Starts up processes in the queue if we have enough space
-void kick_queue(makeq_t *makeq);
+void kick_queue();
 
 //Reclaims processes after they have finished running, also gets rid of zombie processes
-void find_finished_commands(makeq_t *makeq);
+void find_finished_commands();
 
 //Runs all the commands in the queue
-void wait_queue(makeq_t *makeq);
+void wait_queue();
 
 #endif

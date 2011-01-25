@@ -58,6 +58,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 {
 	pid_t pid = -1;		// process ID for child
 	int pipefd[2];		// file descriptors for this process's pipe
+    qcommand_t *q_com;
 
 	/* EXERCISE: Complete this function!
 	 * We've written some of the skeleton for you, but feel free to
@@ -72,16 +73,23 @@ command_exec(command_t *cmd, int *pass_pipefd)
 			return -1;
 	}
     
+    if (cmd->argv[0] != NULL && strcmp(cmd->argv[0], "q") == 0) {
+        if (MKQ == NULL || strcmp(cmd->argv[1], MKQ->name))
+            return -1;
+        q_com = qcommand_alloc();
+        pipe(q_com->pipe);
+    }
+    
 	pid = fork();
     if (pid == -1) {
         return -1; //or error
     }
 
 	if (pid == 0) {
-
 		int fd;
 		dup2(*pass_pipefd, 0);
         
+        //used
 		
         if (cmd->redirect_filename[0]) {
 			fd = open(cmd->redirect_filename[0], O_RDONLY);
@@ -110,6 +118,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 		}
 		
 		if (cmd->subshell) {
+            //printf("subshell?\n");
 			int exit_status = command_line_exec(cmd->subshell);
 			exit(exit_status ? EXIT_FAILURE : EXIT_SUCCESS);
 		} else if (strcmp(cmd->argv[0], "cd") == 0) {
@@ -122,11 +131,28 @@ command_exec(command_t *cmd, int *pass_pipefd)
 				}
 				exit(EXIT_SUCCESS);
 			}
+        } else if (strcmp(cmd->argv[0], "q") == 0) {
+            //char a;
+            //printf("To be Q'd\n");
+            read(q_com->pipe[0], NULL, 1);
+            execvp(cmd->argv[2], &cmd->argv[2]);
 		} else {
 			execvp(cmd->argv[0], &cmd->argv[0]);
 		}
 	} 
     else {
+        if (cmd->argv[0]) {
+			if (strcmp(cmd->argv[0], "cd") == 0) {
+				chdir(cmd->argv[1] ? cmd->argv[1] : getenv("HOME"));
+			} else if (strcmp(cmd->argv[0], "exit") == 0) {
+				exit(0);
+			} else if (strcmp(cmd->argv[0], "q") == 0) {
+                q_com->pid = pid;
+                q_com->cmd = cmd;//not necessarily, but useful for debugging purposes
+                add_command(q_com);
+            }
+		}
+        
         if (*pass_pipefd != STDIN_FILENO) {
             close(*pass_pipefd);
 			//close(pipefd[1]);
@@ -137,14 +163,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
         } else
             *pass_pipefd = STDIN_FILENO;
         
-		if (cmd->argv[0]) {
-			if (strcmp(cmd->argv[0], "cd") == 0) {
-                //printf("IN CD");
-				chdir(cmd->argv[1] ? cmd->argv[1] : getenv("HOME"));
-			} else if (strcmp(cmd->argv[0], "exit") == 0) {
-				exit(0);
-			}
-		}
+		
 
 	}
 	
@@ -272,8 +291,11 @@ command_line_exec(command_t *cmdlist)
 		{
 			case CMD_END:
 			case CMD_SEMICOLON:
-				waitpid(id, &wp_status, 0);
-				cmd_status = WEXITSTATUS(wp_status);
+                if (cmdlist->argv[0] == NULL || 
+                    strcmp(cmdlist->argv[0], "q") != 0) {
+                    waitpid(id, &wp_status, 0);
+                    cmd_status = WEXITSTATUS(wp_status);
+                }
 				break;
 			case CMD_AND:
 				waitpid(id, &wp_status, 0);

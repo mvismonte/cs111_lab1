@@ -7,6 +7,7 @@
  *
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "makeq.h"
@@ -55,58 +56,78 @@ makeq_free(makeq_t *q) {
 }
 
 //Adds a command to the queue
-int add_command(makeq_t *makeq, command_t *cmd) {
-    qcommand_t *qcmd = (qcommand_t *) malloc(sizeof(qcommand_t));
-    if (!qcmd)
+int add_command(qcommand_t *to_q) {
+    if (to_q == NULL || MKQ == NULL)
         return 1;
-    qcmd->cmd = cmd;
-    //pid
-
-    /*
-    if (makeq->head == NULL) {
-        makeq->head = qcmd;
-        makeq->last_run = qcmd;
+        
+    if (MKQ->q == NULL) {
+        to_q->next = NULL;
+        MKQ->q = to_q;
     } else {
-        qcommand_t *q_itr = makeq->last_run;
-        while (q_itr->next != NULL) 
-            q_itr = q_itr->next;
-        q_itr->next = qcmd;
-    }*/
+        qcommand_t *head;
+        for (head = MKQ->q; head != NULL; head = head->next)
+            if (head->next == NULL)
+                head->next= to_q;
+    }
+    kick_queue();
     return 0; //should be PID
 }
 
 //Starts up processes in the queue if we have enough space
-void kick_queue(makeq_t *makeq) {
-    /*if (makeq->num_jobs_running < makeq->max_jobs) {
-        //pipe kickstart makeq->last_run->next;
-        makeq->last_run = makeq->last_run->next;
-        makeq->num_jobs_running++;
-    }*/
-    
-
+void kick_queue() {
+    if (!MKQ || MKQ->q == NULL)
+        return;
+    //printf("kickQ 1 jobs: %d\n", MKQ->num_running);
+    while (MKQ->num_running < MKQ->max_jobs && MKQ->q != NULL) {
+        qcommand_t *next = MKQ->q;
+        MKQ->q = next->next;
+        qcommand_t *head;
+        if (MKQ->running == NULL) {
+            MKQ->running = next;
+        } else {
+            for (head = MKQ->running; head != NULL; head = head->next)
+                if (head->next == NULL)
+                    head->next= next;
+        }
+        write(next->pipe[1], "X", 1);//start running process
+        MKQ->num_running++;
+    }
+    //printf("kickQ 2 jobs: %d\n", MKQ->num_running);
 }
 
 //Reclaims processes after they have finished running, also gets rid of zombie processes
-void find_finished_commands(makeq_t *makeq) {
-    /*qcommand_t *q_itr = makeq->head;
-    qcommand_t *rem_q;
-    while (q_itr->next != NULL) {
-        if (q_itr->pid == 0) {
-            if (q_itr == makeq->head)
-                makeq->head = makeq->head->next;
-            else if (q_itr == makeq->last_run) {
-                
+void find_finished_commands() {
+    if (!MKQ || MKQ->num_running == 0)
+        return;
+    printf("Number of Jobs running: %d\n", MKQ->num_running);
+    qcommand_t *head, *trail;
+    for (head = MKQ->running, trail = NULL; head != NULL; head = head->next) {
+        printf("Looking up pid: %d\n", head->pid);
+        if (waitpid(head->pid, NULL, WNOHANG)) {
+            MKQ->num_running--;
+            printf("Jobs running: %d\n", MKQ->num_running);
+            if (head == MKQ->running) {
+                MKQ->running = head->next;
+                qcommand_free(head);
+                head = MKQ->running;
+                trail = NULL;
+                if (head == NULL)
+                    break;
+            } else {
+                trail->next = head->next;
+                qcommand_free(head);
+                head = trail->next;
             }
-            rem_q = q_itr;
-            q_itr = q_itr->next;
-            free(rem_q);    //free
+        } else {
+            trail = head;
+            printf("Job not finished running\n");
         }
-        else
-            q_itr = q_itr->next;
-
-    }*/
-
+    }
+    printf("Number of Jobs running: %d\n", MKQ->num_running);
 }
 
+
 //Runs all the commands in the queue
-void wait_queue(makeq_t *makeq);
+void wait_queue() {
+    //implement some type of blocking mechanism that runs all commands
+}
