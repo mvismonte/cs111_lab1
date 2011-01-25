@@ -61,17 +61,23 @@ void kick_queue(makeq_t *makeq) {
 void find_finished_commands(makeq_t *makeq) {
     qcommand_t *q_itr = makeq->head;
     qcommand_t *rem_q;
+    qcommand_t *prev;
     while (q_itr != makeq->next_run) {
         if (q_itr->pid == 0) {
             if (q_itr == makeq->head)
                 makeq->head = makeq->head->next;
+            if (prev != NULL) { //for middle removal
+                prev->next = q_itr->next;
+            }
             rem_q = q_itr;
             q_itr = q_itr->next;
             free(rem_q);    //free
-            //also need to take care of if a middle one was removed
+            //do something with that pid? like clean zomb
         }
-        else
+        else {
+            prev = q_itr;
             q_itr = q_itr->next;
+        }
 
     }
 
