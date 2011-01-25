@@ -31,8 +31,6 @@
  *   types a command.  But it is NOT OK for zombies to hang around forever.
  */
 
-volatile int RECEIVED_EINTR;
-
 void sig_child(int intr);
 
 /*
@@ -44,7 +42,6 @@ main(int argc, char *argv[])
 	int quiet = 0;
 	char input[BUFSIZ];
 	int r = 0;
-    RECEIVED_EINTR = 0;
     
     signal(SIGCHLD, sig_child);
 
@@ -60,8 +57,6 @@ main(int argc, char *argv[])
 			printf("cs111_winter11(exit=%d)$ ", r);
 			fflush(stdout);
 		}
-        //input[0] = 0; //reset buffer just in case we get an interrupt
-        //RECEIVED_EINTR = 0; //check if we got an interrupt
 
 		// Read a string, checking for error or EOF
 		if (fgets(input, BUFSIZ, stdin) == NULL) {
@@ -76,28 +71,26 @@ main(int argc, char *argv[])
             break;
 		} //need to figure out how signals can be used
         
-        //if (input[0] != 0) {
-            // build the command list
-            parse_init(&parsestate, input);
-            
-            cmdlist = command_line_parse(&parsestate, 0);
-            if (!cmdlist) {
-                printf("Syntax error\n");
-                continue;
-            }
-            
-            // print the command list
-            if (!quiet) {
-                command_print(cmdlist, 0);
-                // why do we need to do this?
-                fflush(stdout);
-            }
-            
-            // and run it!
-            if (cmdlist)
-                r = command_line_exec(cmdlist);
-            command_free(cmdlist);
-        //}
+        // build the command list
+        parse_init(&parsestate, input);
+        
+        cmdlist = command_line_parse(&parsestate, 0);
+        if (!cmdlist) {
+            printf("Syntax error\n");
+            continue;
+        }
+        
+        // print the command list
+        if (!quiet) {
+            command_print(cmdlist, 0);
+            // why do we need to do this?
+            fflush(stdout);
+        }
+        
+        // and run it!
+        if (cmdlist)
+            r = command_line_exec(cmdlist);
+        command_free(cmdlist);
 		
 		while (waitpid(-1, NULL, WNOHANG) > 0)
 			/* Try again */;

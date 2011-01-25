@@ -282,40 +282,47 @@ command_line_exec(command_t *cmdlist)
             }
             if (cmdlist->argv[3] != NULL)
                 goto error;
-        }
-		pid_t id = command_exec(cmdlist, &pipefd);
-		if (id <= 0)
-			abort();
-		
-		switch(cmdlist->controlop)
-		{
-			case CMD_END:
-			case CMD_SEMICOLON:
-                if (cmdlist->argv[0] == NULL || 
-                    strcmp(cmdlist->argv[0], "q") != 0) {
+        } else if (cmdlist->argv[0] != NULL && strcmp(cmdlist->argv[0], "waitq") == 0) {
+            //printf("we are here\n");
+            if (cmdlist->argv[1] != NULL && MKQ != NULL && strcmp(cmdlist->argv[1], MKQ->name) == 0)
+                wait_queue();
+            else
+                fprintf(stderr, "Could not find makeq with that name\n");
+        } else {
+            pid_t id = command_exec(cmdlist, &pipefd);
+            if (id <= 0)
+                abort();
+            
+            switch(cmdlist->controlop)
+            {
+                case CMD_END:
+                case CMD_SEMICOLON:
+                    if (cmdlist->argv[0] == NULL || 
+                        strcmp(cmdlist->argv[0], "q") != 0) {
+                        waitpid(id, &wp_status, 0);
+                        cmd_status = WEXITSTATUS(wp_status);
+                    }
+                    break;
+                case CMD_AND:
                     waitpid(id, &wp_status, 0);
-                    cmd_status = WEXITSTATUS(wp_status);
-                }
-				break;
-			case CMD_AND:
-				waitpid(id, &wp_status, 0);
-				if (WEXITSTATUS(wp_status) != 0) {
-					cmd_status = WEXITSTATUS(wp_status);
-					goto done;
-				}
-				break;
-			case CMD_OR:
-				waitpid(id, &wp_status, 0);
-				if (WEXITSTATUS(wp_status) == 0) {
-					cmd_status = 0; // EXIT_SUCCESS
-					goto done;
-				}
-				break;
-			case CMD_BACKGROUND:
-			case CMD_PIPE:
-				cmd_status = 0;
-				break;
-		}
+                    if (WEXITSTATUS(wp_status) != 0) {
+                        cmd_status = WEXITSTATUS(wp_status);
+                        goto done;
+                    }
+                    break;
+                case CMD_OR:
+                    waitpid(id, &wp_status, 0);
+                    if (WEXITSTATUS(wp_status) == 0) {
+                        cmd_status = 0; // EXIT_SUCCESS
+                        goto done;
+                    }
+                    break;
+                case CMD_BACKGROUND:
+                case CMD_PIPE:
+                    cmd_status = 0;
+                    break;
+            }
+        }
 		cmdlist = cmdlist->next;
 	}
 
@@ -323,6 +330,6 @@ done:
 	return cmd_status;
     
 error:
-    makeq_free(MKQ);
+    //makeq_free(MKQ);
     return 1;
 }
