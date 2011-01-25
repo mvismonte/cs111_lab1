@@ -26,3 +26,7 @@ Email: timzwang@gmail.com
 # Add any other information you'd like us to know below this line.
 We used signals to implement the open-ended problem.
 We're currently having errors when the size is greater than 2
+
+We have discovered a potential race condition when using signal interrupts.
+
+What happens is that in that a command

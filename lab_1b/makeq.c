@@ -84,6 +84,7 @@ void kick_queue() {
         return;
     //printf("kickQ 1 jobs: %d\n", MKQ->num_running);
     while (MKQ->num_running < MKQ->max_jobs && MKQ->q != NULL) {
+        (MKQ->num_running)++;
         qcommand_t *next = MKQ->q;
         MKQ->q = next->next;
         //qcommand_t *head; //unused
@@ -94,8 +95,8 @@ void kick_queue() {
             next->next = MKQ->running;
             MKQ->running = next;
         }
+        sleep(1);
         write(next->pipe[1], "X", 1);//start running process
-        (MKQ->num_running)++;
     }
     //printf("kickQ 2 jobs: %d\n", MKQ->num_running);
 }
