@@ -12,6 +12,7 @@
 #include <string.h>
 #include "makeq.h"
 #include <sys/wait.h>
+//temporary add
 
 qcommand_t *qcommand_alloc(void) {
     // Allocate memory for the command
