@@ -19,7 +19,7 @@ struct qcommand {
 typedef struct {
     int max_jobs;
     qcommand_t *head;
-    qcommand_t *last_run;
+    qcommand_t *next_run;
     int num_jobs_running;
 } makeq_t;
 

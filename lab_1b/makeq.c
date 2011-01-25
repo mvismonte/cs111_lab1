@@ -36,9 +36,9 @@ int add_command(makeq_t *makeq, command_t *cmd) {
 
     if (makeq->head == NULL) {
         makeq->head = qcmd;
-        makeq->last_run = qcmd;
+        makeq->next_run = NULL;
     } else {
-        qcommand_t *q_itr = makeq->last_run;
+        qcommand_t *q_itr = makeq->next_run;
         while (q_itr->next != NULL) 
             q_itr = q_itr->next;
         q_itr->next = qcmd;
@@ -49,8 +49,8 @@ int add_command(makeq_t *makeq, command_t *cmd) {
 //Starts up processes in the queue if we have enough space
 void kick_queue(makeq_t *makeq) {
     if (makeq->num_jobs_running < makeq->max_jobs) {
-        //pipe kickstart makeq->last_run->next;
-        makeq->last_run = makeq->last_run->next;
+        //pipe kickstart makeq->next_run;
+        makeq->next_run = makeq->next_run->next;
         makeq->num_jobs_running++;
     }
     
@@ -61,16 +61,14 @@ void kick_queue(makeq_t *makeq) {
 void find_finished_commands(makeq_t *makeq) {
     qcommand_t *q_itr = makeq->head;
     qcommand_t *rem_q;
-    while (q_itr->next != NULL) {
+    while (q_itr != makeq->next_run) {
         if (q_itr->pid == 0) {
             if (q_itr == makeq->head)
                 makeq->head = makeq->head->next;
-            else if (q_itr == makeq->last_run) {
-                
-            }
             rem_q = q_itr;
             q_itr = q_itr->next;
             free(rem_q);    //free
+            //also need to take care of if a middle one was removed
         }
         else
             q_itr = q_itr->next;
