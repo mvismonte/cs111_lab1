@@ -70,17 +70,8 @@ command_exec(command_t *cmd, int *pass_pipefd)
 		/* Your code here. */
 		if (pipe(pipefd) == -1)
 			return -1;
-//        pid = fork();
-//        if (pid == 0) {
-//            dup2(pipefd[0], 0);
 	}
-	
-	int child_status = 0;
-	
-    char d_buf[10];
-
-    //getcwd(d_buf, 9);
-    //printf("Pre: %s&", d_buf);
+    
 	pid = fork();
     if (pid == -1) {
         return -1; //or error
@@ -89,15 +80,12 @@ command_exec(command_t *cmd, int *pass_pipefd)
 	if (pid == 0) {
 
 		int fd;
-        //if (*pass_pipefd != STDIN_FILENO) {
-		//waitpid(-1, &child_status, 0);
 		dup2(*pass_pipefd, 0);
         
 		
         if (cmd->redirect_filename[0]) {
 			fd = open(cmd->redirect_filename[0], O_RDONLY);
 			dup2(fd, 0);
-			//printf("Number: %d\n", fd);
 			close(fd);
 		}
 
@@ -123,7 +111,6 @@ command_exec(command_t *cmd, int *pass_pipefd)
 		
 		if (cmd->subshell) {
 			int exit_status = command_line_exec(cmd->subshell);
-			//printf("pid %d: Exiting with value: %d(%d)\n", getpid(), exit_status, EXIT_FAILURE);
 			exit(exit_status ? EXIT_FAILURE : EXIT_SUCCESS);
 		} else if (strcmp(cmd->argv[0], "cd") == 0) {
 			if (cmd->argv[1]) {
@@ -131,23 +118,15 @@ command_exec(command_t *cmd, int *pass_pipefd)
 				if (fd != -1)
 					close(fd);
 				else {
-					//printf("cd: %s: does not exist\n", cmd->argv[1]);
 					exit(EXIT_FAILURE);
 				}
 				exit(EXIT_SUCCESS);
 			}
 		} else {
-			//printf("Executing Child\n");
 			execvp(cmd->argv[0], &cmd->argv[0]);
 		}
 	} 
     else {
-        //getcwd(d_buf, 9);
-        //printf("P: %s&", d_buf);
-
-    
-        //waitpid(0, &child_status, 0);
-        //close(pipefd[0]);
         if (*pass_pipefd != STDIN_FILENO) {
             close(*pass_pipefd);
 			//close(pipefd[1]);
@@ -158,11 +137,6 @@ command_exec(command_t *cmd, int *pass_pipefd)
         } else
             *pass_pipefd = STDIN_FILENO;
         
-
-		//printf("Executing Parent\n");
-        // *pass_pipefd = pipefd[1];  // um*/
-
-        // Implementing `cd`
 		if (cmd->argv[0]) {
 			if (strcmp(cmd->argv[0], "cd") == 0) {
                 //printf("IN CD");
@@ -171,9 +145,6 @@ command_exec(command_t *cmd, int *pass_pipefd)
 				exit(0);
 			}
 		}
-        //pseudo
-        // if cmd is cd
-        // get arg
 
 	}
 	
@@ -278,7 +249,9 @@ command_line_exec(command_t *cmdlist)
 
 		// EXERCISE: Fill out this function!
 		// If an error occurs in command_exec, feel free to abort().
-
+        if (strcpy(cmdlist->argv[0], "makeq") == 0) {
+            
+        }
 		pid_t id = command_exec(cmdlist, &pipefd);
 		if (id <= 0)
 			abort();
@@ -309,14 +282,9 @@ command_line_exec(command_t *cmdlist)
 				cmd_status = 0;
 				break;
 		}
-		//printf("statul: %d\n", wp_status);
-        //printf("status: %d\n", cmd_status);
-		//printf("%s(%d): controlop = %d, wp_status = %d, cmd_status = %d\n", 
-		//			cmdlist->argv[0], id, cmdlist->controlop, wp_status, cmd_status);
 		cmdlist = cmdlist->next;
 	}
 
 done:
-	//printf("%s: cmd_status = %d\n", cmdlist->argv[0], cmd_status);
 	return cmd_status;
 }

@@ -32,6 +32,7 @@
  */
 
 volatile int RECEIVED_EINTR;
+makeq_t *MKQ;
 
 void sig_child(int intr);
 
@@ -71,8 +72,9 @@ main(int argc, char *argv[])
                     // error, preceded by 'cs111_winter11: '.
                     perror("cs111_winter11");
                 }
-            
+                
             }
+            printf("INTERRUPED\n");
             break;
 		} //need to figure out how signals can be used
         
@@ -108,7 +110,5 @@ main(int argc, char *argv[])
 }
 
 void sig_child(int intr) {
-    /* do nothing */;
-    //printf("Interrupt fired\n");
-    //RECEIVED_EINTR = 1;
+    //
 }

@@ -6,6 +6,8 @@
  *  Copyright 2011 University of California, Los Angeles. All rights reserved.
  *
  */
+#ifndef MAKEQ_H
+#define MAKEQ_H
 #include "cmdline.h"
 
 typedef struct qcommand qcommand_t;
@@ -13,17 +15,25 @@ typedef struct qcommand qcommand_t;
 struct qcommand {
     command_t *cmd;
     qcommand_t *next;
+    int pipe[2];
     pid_t pid;
 };
 
 typedef struct {
+    char *name;
     int max_jobs;
-    qcommand_t *head;
-    qcommand_t *last_run;
-    int num_jobs_running;
+    qcommand_t *q;
+    qcommand_t *running;
+    int num_running;
 } makeq_t;
 
-makeq_t * makeq_alloc(void);
+qcommand_t *qcommand_alloc(void);
+
+void qcommand_free(qcommand_t *qcommand);
+
+makeq_t *makeq_alloc(void);
+
+void makeq_free(makeq_t *makeq);
 
 //Adds a command to the queue
 int add_command(makeq_t *makeq, command_t *cmd);
@@ -36,3 +46,5 @@ void find_finished_commands(makeq_t *makeq);
 
 //Runs all the commands in the queue
 void wait_queue(makeq_t *makeq);
+
+#endif
