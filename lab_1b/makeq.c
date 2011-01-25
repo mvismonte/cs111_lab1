@@ -100,13 +100,13 @@ void kick_queue() {
 void find_finished_commands() {
     if (!MKQ || MKQ->num_running == 0)
         return;
-    printf("Number of Jobs running: %d\n", MKQ->num_running);
+    //printf("Number of Jobs running: %d\n", MKQ->num_running);
     qcommand_t *head, *trail;
     for (head = MKQ->running, trail = NULL; head != NULL; ) {
-        printf("Looking up pid: %d\n", head->pid);
+        //printf("Looking up pid: %d\n", head->pid);
         if (waitpid(head->pid, NULL, WNOHANG)) {
             MKQ->num_running--;
-            printf("Jobs running: %d\n", MKQ->num_running);
+            //printf("Jobs running: %d\n", MKQ->num_running);
             if (head == MKQ->running) {
                 MKQ->running = head->next;
                 qcommand_free(head);
@@ -122,10 +122,10 @@ void find_finished_commands() {
         } else {
             trail = head;
             head = head->next;
-            printf("Job not finished running\n");
+            //printf("Job not finished running\n");
         }
     }
-    printf("Number of Jobs running: %d\n", MKQ->num_running);
+    //printf("Number of Jobs running: %d\n", MKQ->num_running);
 }
 
 
