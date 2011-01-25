@@ -27,12 +27,14 @@ qcommand_t *qcommand_alloc(void) {
 
 void
 qcommand_free(qcommand_t *qcommand) {
+    close(qcommand->pipe[0]);
+    close(qcommand->pipe[1]);
     if (qcommand) {
         free(qcommand);
     }
 }
 
-void qcommand_free(qcommand_t *qcommand);
+//void qcommand_free(qcommand_t *qcommand);
 
 makeq_t *
 makeq_alloc(void)
@@ -82,7 +84,7 @@ void kick_queue() {
     while (MKQ->num_running < MKQ->max_jobs && MKQ->q != NULL) {
         qcommand_t *next = MKQ->q;
         MKQ->q = next->next;
-        qcommand_t *head;
+        //qcommand_t *head; //unused
         if (MKQ->running == NULL) {
             next->next = NULL;
             MKQ->running = next;
@@ -90,8 +92,8 @@ void kick_queue() {
             next->next = MKQ->running;
             MKQ->running = next;
         }
-        write(next->pipe[1], "X", 1);//start running process KICK BAMF
-        MKQ->num_running++;
+        write(next->pipe[1], "X", 1);//start running process
+        (MKQ->num_running)++;
     }
     //printf("kickQ 2 jobs: %d\n", MKQ->num_running);
 }
@@ -105,7 +107,7 @@ void find_finished_commands() {
     for (head = MKQ->running, trail = NULL; head != NULL; ) {
         //printf("Looking up pid: %d\n", head->pid);
         if (waitpid(head->pid, NULL, WNOHANG)) {
-            MKQ->num_running--;
+            (MKQ->num_running)--;
             //printf("Jobs running: %d\n", MKQ->num_running);
             if (head == MKQ->running) {
                 MKQ->running = head->next;
