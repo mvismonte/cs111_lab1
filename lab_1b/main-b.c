@@ -108,7 +108,7 @@ main(int argc, char *argv[])
 }
 
 void sig_child(int intr) {
-    printf("Child death\n");
+    //printf("Child death\n");
     find_finished_commands();
     kick_queue();
 }

@@ -57,14 +57,14 @@ makeq_free(makeq_t *q) {
 
 //Adds a command to the queue
 int add_command(qcommand_t *to_q) {
-    if (to_q == NULL || MKQ == NULL)
+    if (to_q == NULL || MKQ == NULL) // return if  either are null
         return 1;
         
-    if (MKQ->q == NULL) {
+    if (MKQ->q == NULL) {// if the q is null
         to_q->next = NULL;
-        MKQ->q = to_q;
-    } else {
-        qcommand_t *head;
+        MKQ->q = to_q; // make to_q the head
+    } else { //else
+        qcommand_t *head; //add it to the end of the q
         for (head = MKQ->q; head != NULL; head = head->next)
             if (head->next == NULL)
                 head->next= to_q;
