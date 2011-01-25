@@ -109,6 +109,6 @@ main(int argc, char *argv[])
 
 void sig_child(int intr) {
     /* do nothing */;
-    printf("Interrupt fired\n");
+    //printf("Interrupt fired\n");
     //RECEIVED_EINTR = 1;
 }
