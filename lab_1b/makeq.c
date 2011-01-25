@@ -84,12 +84,13 @@ void kick_queue() {
         MKQ->q = next->next;
         qcommand_t *head;
         if (MKQ->running == NULL) {
+            next->next = NULL;
             MKQ->running = next;
         } else {
             next->next = MKQ->running;
             MKQ->running = next;
         }
-        write(next->pipe[1], "X", 1);//start running process
+        write(next->pipe[1], "X", 1);//start running process KICK BAMF
         MKQ->num_running++;
     }
     //printf("kickQ 2 jobs: %d\n", MKQ->num_running);
