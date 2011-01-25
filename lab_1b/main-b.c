@@ -46,15 +46,7 @@ main(int argc, char *argv[])
 	int r = 0;
     RECEIVED_EINTR = 0;
     
-    struct sigaction act;
-    sigemptyset(&act.sa_mask);
-    act.sa_handler = sig_child;
-    
-    if (sigaction(SIGCHLD, &act, NULL) < 0) 
-    {
-        fprintf(stderr, "sigaction failed\n");
-        return 1;
-    }
+    signal(SIGCHLD, sig_child);
 
 	// Check for '-q' option: be quiet -- print no prompts
 	if (argc > 1 && strcmp(argv[1], "-q") == 0)
@@ -107,7 +99,7 @@ main(int argc, char *argv[])
             command_free(cmdlist);
         //}
 		
-		//while (waitpid(-1, NULL, WNOHANG) > 0)
+		while (waitpid(-1, NULL, WNOHANG) > 0)
 			/* Try again */;
 
 	}
@@ -117,6 +109,6 @@ main(int argc, char *argv[])
 
 void sig_child(int intr) {
     /* do nothing */;
-    //printf("Interrupt fired\n");
+    printf("Interrupt fired\n");
     //RECEIVED_EINTR = 1;
 }
