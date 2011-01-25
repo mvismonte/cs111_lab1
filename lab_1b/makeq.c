@@ -102,7 +102,7 @@ void find_finished_commands() {
         return;
     printf("Number of Jobs running: %d\n", MKQ->num_running);
     qcommand_t *head, *trail;
-    for (head = MKQ->running, trail = NULL; head != NULL; head = head->next) {
+    for (head = MKQ->running, trail = NULL; head != NULL; ) {
         printf("Looking up pid: %d\n", head->pid);
         if (waitpid(head->pid, NULL, WNOHANG)) {
             MKQ->num_running--;
@@ -112,7 +112,7 @@ void find_finished_commands() {
                 qcommand_free(head);
                 head = MKQ->running;
                 trail = NULL;
-                if (head == NULL)
+                if (head == NULL)   //redundant?
                     break;
             } else {
                 trail->next = head->next;
@@ -121,6 +121,7 @@ void find_finished_commands() {
             }
         } else {
             trail = head;
+            head = head->next;
             printf("Job not finished running\n");
         }
     }
