@@ -11,6 +11,26 @@
 #include <string.h>
 #include "makeq.h"
 
+qcommand_t *qcommand_alloc(void) {
+    // Allocate memory for the command
+	qcommand_t *qcommand = (qcommand_t *) malloc(sizeof(*qcommand));
+	if (!qcommand)
+		return NULL;
+	
+	// Set all its fields to 0
+	memset(qcommand, 0, sizeof(*qcommand));
+    
+	return qcommand;
+}
+
+void
+qcommand_free(qcommand_t *qcommand) {
+    if (qcommand) {
+        free(qcommand);
+    }
+}
+
+void qcommand_free(qcommand_t *qcommand);
 
 makeq_t *
 makeq_alloc(void)
@@ -24,6 +44,14 @@ makeq_alloc(void)
 	memset(makeq, 0, sizeof(*makeq));
     
 	return makeq;
+}
+
+void
+makeq_free(makeq_t *q) {
+    if (q) {
+        free(q->name);
+        free(q);
+    }
 }
 
 //Adds a command to the queue

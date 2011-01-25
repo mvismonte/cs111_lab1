@@ -249,8 +249,20 @@ command_line_exec(command_t *cmdlist)
 
 		// EXERCISE: Fill out this function!
 		// If an error occurs in command_exec, feel free to abort().
-        if (strcpy(cmdlist->argv[0], "makeq") == 0) {
-            
+        if (cmdlist->argv[0] != NULL && strcmp(cmdlist->argv[0], "makeq") == 0) {
+            MKQ = makeq_alloc();
+            if (cmdlist->argv[1] != NULL) {
+                MKQ->name = strdup(cmdlist->argv[1]);
+            } else {
+                goto error;
+            }
+            if (cmdlist->argv[2] != NULL) {
+                MKQ->max_jobs = atoi(cmdlist->argv[2]);
+            } else {
+                goto error;
+            }
+            if (cmdlist->argv[3] != NULL)
+                goto error;
         }
 		pid_t id = command_exec(cmdlist, &pipefd);
 		if (id <= 0)
@@ -287,4 +299,8 @@ command_line_exec(command_t *cmdlist)
 
 done:
 	return cmd_status;
+    
+error:
+    makeq_free(MKQ);
+    return 1;
 }

@@ -32,7 +32,6 @@
  */
 
 volatile int RECEIVED_EINTR;
-makeq_t *MKQ;
 
 void sig_child(int intr);
 
@@ -74,7 +73,6 @@ main(int argc, char *argv[])
                 }
                 
             }
-            printf("INTERRUPED\n");
             break;
 		} //need to figure out how signals can be used
         
