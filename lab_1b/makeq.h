@@ -27,7 +27,7 @@ typedef struct {
     int num_running;
 } makeq_t;
 
-makeq_t *MKQ;
+volatile makeq_t *MKQ;
 
 qcommand_t *qcommand_alloc(void);
 

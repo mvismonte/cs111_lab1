@@ -105,7 +105,7 @@ void find_finished_commands() {
     if (!MKQ || MKQ->num_running == 0)
         return;
     //printf("Number of Jobs running: %d\n", MKQ->num_running);
-    /*qcommand_t *head, *trail;
+    qcommand_t *head, *trail;
     for (head = MKQ->running, trail = NULL; head != NULL; ) {
         //printf("Looking up pid: %d\n", head->pid);
         if (waitpid(head->pid, NULL, WNOHANG)) {
@@ -128,9 +128,9 @@ void find_finished_commands() {
             head = head->next;
             //printf("Job not finished running\n");
         }
-    }*/
+    }
     //printf("Number of Jobs running: %d\n", MKQ->num_running);
-    qcommand_t *new_runnable = NULL;
+    /*qcommand_t *new_runnable = NULL;
     qcommand_t *current = NULL;
     qcommand_t *itr;
     for (itr = MKQ->running; itr != NULL; ) {
@@ -151,7 +151,7 @@ void find_finished_commands() {
             itr = temp;
         }
     }
-    MKQ->running = new_runnable;
+    MKQ->running = new_runnable;*/
 }
 
 
@@ -159,11 +159,12 @@ void find_finished_commands() {
 void wait_queue() {
     //printf("wait_queue\n");
     //implement some type of blocking mechanism that runs all commands
-    while (MKQ->running != NULL) {
+    while (MKQ->running != NULL && MKQ->q != NULL) {
         qcommand_t *last = MKQ->running;
         while (last->next)
             last = last->next;
         waitpid(last->pid, NULL, 0);
+        kick_queue();
     }
     
 }
