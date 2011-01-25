@@ -50,6 +50,7 @@ int add_command(makeq_t *makeq, command_t *cmd) {
 void kick_queue(makeq_t *makeq) {
     if (makeq->num_jobs_running < makeq->max_jobs) {
         //pipe kickstart makeq->last_run->next;
+        makeq->last_run = makeq->last_run->next;
         makeq->num_jobs_running++;
     }
     
@@ -57,7 +58,26 @@ void kick_queue(makeq_t *makeq) {
 }
 
 //Reclaims processes after they have finished running, also gets rid of zombie processes
-void find_finished_commands(makeq_t *makeq);
+void find_finished_commands(makeq_t *makeq) {
+    qcommand_t *q_itr = makeq->head;
+    qcommand_t *rem_q;
+    while (q_itr->next != NULL) {
+        if (q_itr->pid == 0) {
+            if (q_itr == makeq->head)
+                makeq->head = makeq->head->next;
+            else if (q_itr == makeq->last_run) {
+                
+            }
+            rem_q = q_itr;
+            q_itr = q_itr->next;
+            free(rem_q);    //free
+        }
+        else
+            q_itr = q_itr->next;
+
+    }
+
+}
 
 //Runs all the commands in the queue
 void wait_queue(makeq_t *makeq);
