@@ -27,6 +27,25 @@ Email: timzwang@gmail.com
 We used signals to implement the open-ended problem.
 We're currently having errors when the size is greater than 2
 
+
+TIM:
 We have discovered a potential race condition when using signal interrupts.
 
-What happens is that in that a command
+What happens is that in that in the kick_queue() function, the total number of
+running processes is incremented.  However, the exec is kickstarted using the
+pipe, and that process child exits and throws an interrupt faster than
+the global number running processes can update (?).  So, find_finished_commands
+is run before the number of running processes is updated, so that finished
+exec is not removed from our running process queue.
+
+So, afterwards, running processes would be tacked on without that previous
+process being removed, therefore creating an infinite number of "running"
+processes.  So, when free is actually called in find_finished_commands, the
+qcommand structure is freed 2 or more times, which results in a error.
+
+What we have done to temporarily alleviate this problem is place a sleep(1)
+between the increment and the pipe kickstart.  This seems to work, but is
+terrible shell behavior, and if we had more knowledge of signals beforehand,
+we could have prevented this race condition.
+
+/TIM
