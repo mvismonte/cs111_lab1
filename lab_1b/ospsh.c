@@ -58,6 +58,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
 {
 	pid_t pid = -1;		// process ID for child
 	int pipefd[2];		// file descriptors for this process's pipe
+    qcommand_t *q_com;
 
 	/* EXERCISE: Complete this function!
 	 * We've written some of the skeleton for you, but feel free to
@@ -70,39 +71,29 @@ command_exec(command_t *cmd, int *pass_pipefd)
 		/* Your code here. */
 		if (pipe(pipefd) == -1)
 			return -1;
-//        pid = fork();
-//        if (pid == 0) {
-//            dup2(pipefd[0], 0);
 	}
-	
-	int child_status = 0;
-	
-    char d_buf[10];
-
-    //getcwd(d_buf, 9);
-    //printf("Pre: %s&", d_buf);
+    
+    if (cmd->argv[0] != NULL && strcmp(cmd->argv[0], "q") == 0) {
+        if (MKQ == NULL || strcmp(cmd->argv[1], MKQ->name))
+            return -1;
+        q_com = qcommand_alloc();
+        pipe(q_com->pipe);
+    }
+    
 	pid = fork();
     if (pid == -1) {
         return -1; //or error
     }
 
 	if (pid == 0) {
-		//printf("Executing Child\n");
-		
-	    //getcwd(d_buf, 9);
-        //printf("C: %s&", d_buf);
-
-		
 		int fd;
-        //if (*pass_pipefd != STDIN_FILENO) {
-		//waitpid(-1, &child_status, 0);
 		dup2(*pass_pipefd, 0);
         
+        //used
 		
         if (cmd->redirect_filename[0]) {
 			fd = open(cmd->redirect_filename[0], O_RDONLY);
 			dup2(fd, 0);
-			//printf("Number: %d\n", fd);
 			close(fd);
 		}
 
@@ -127,8 +118,8 @@ command_exec(command_t *cmd, int *pass_pipefd)
 		}
 		
 		if (cmd->subshell) {
+            //printf("subshell?\n");
 			int exit_status = command_line_exec(cmd->subshell);
-			//printf("pid %d: Exiting with value: %d(%d)\n", getpid(), exit_status, EXIT_FAILURE);
 			exit(exit_status ? EXIT_FAILURE : EXIT_SUCCESS);
 		} else if (strcmp(cmd->argv[0], "cd") == 0) {
 			if (cmd->argv[1]) {
@@ -136,23 +127,32 @@ command_exec(command_t *cmd, int *pass_pipefd)
 				if (fd != -1)
 					close(fd);
 				else {
-					//printf("cd: %s: does not exist\n", cmd->argv[1]);
 					exit(EXIT_FAILURE);
 				}
 				exit(EXIT_SUCCESS);
 			}
+        } else if (strcmp(cmd->argv[0], "q") == 0) {
+            //char a;
+            //printf("To be Q'd\n");
+            read(q_com->pipe[0], NULL, 1);
+            execvp(cmd->argv[2], &cmd->argv[2]);
 		} else {
-			//printf("Executing Child\n");
 			execvp(cmd->argv[0], &cmd->argv[0]);
 		}
 	} 
     else {
-        //getcwd(d_buf, 9);
-        //printf("P: %s&", d_buf);
-
-    
-        //waitpid(0, &child_status, 0);
-        //close(pipefd[0]);
+        if (cmd->argv[0]) {
+			if (strcmp(cmd->argv[0], "cd") == 0) {
+				chdir(cmd->argv[1] ? cmd->argv[1] : getenv("HOME"));
+			} else if (strcmp(cmd->argv[0], "exit") == 0) {
+				exit(0);
+			} else if (strcmp(cmd->argv[0], "q") == 0) {
+                q_com->pid = pid;
+                q_com->cmd = cmd;//not necessarily, but useful for debugging purposes
+                add_command(q_com);
+            }
+		}
+        
         if (*pass_pipefd != STDIN_FILENO) {
             close(*pass_pipefd);
 			//close(pipefd[1]);
@@ -163,22 +163,7 @@ command_exec(command_t *cmd, int *pass_pipefd)
         } else
             *pass_pipefd = STDIN_FILENO;
         
-
-		//printf("Executing Parent\n");
-        // *pass_pipefd = pipefd[1];  // um*/
-
-        // Implementing `cd`
-		if (cmd->argv[0]) {
-			if (strcmp(cmd->argv[0], "cd") == 0) {
-                //printf("IN CD");
-				chdir(cmd->argv[1] ? cmd->argv[1] : getenv("HOME"));
-			} else if (strcmp(cmd->argv[0], "exit") == 0) {
-				exit(0);
-			}
-		}
-        //pseudo
-        // if cmd is cd
-        // get arg
+		
 
 	}
 	
@@ -283,45 +268,68 @@ command_line_exec(command_t *cmdlist)
 
 		// EXERCISE: Fill out this function!
 		// If an error occurs in command_exec, feel free to abort().
-
-		pid_t id = command_exec(cmdlist, &pipefd);
-		if (id <= 0)
-			abort();
-		
-		switch(cmdlist->controlop)
-		{
-			case CMD_END:
-			case CMD_SEMICOLON:
-				waitpid(id, &wp_status, 0);
-				cmd_status = WEXITSTATUS(wp_status);
-				break;
-			case CMD_AND:
-				waitpid(id, &wp_status, 0);
-				if (WEXITSTATUS(wp_status) != 0) {
-					cmd_status = WEXITSTATUS(wp_status);
-					goto done;
-				}
-				break;
-			case CMD_OR:
-				waitpid(id, &wp_status, 0);
-				if (WEXITSTATUS(wp_status) == 0) {
-					cmd_status = 0; // EXIT_SUCCESS
-					goto done;
-				}
-				break;
-			case CMD_BACKGROUND:
-			case CMD_PIPE:
-				cmd_status = 0;
-				break;
-		}
-		//printf("statul: %d\n", wp_status);
-        //printf("status: %d\n", cmd_status);
-		//printf("%s(%d): controlop = %d, wp_status = %d, cmd_status = %d\n", 
-		//			cmdlist->argv[0], id, cmdlist->controlop, wp_status, cmd_status);
+        if (cmdlist->argv[0] != NULL && strcmp(cmdlist->argv[0], "makeq") == 0) {
+            MKQ = makeq_alloc();
+            if (cmdlist->argv[1] != NULL) {
+                MKQ->name = strdup(cmdlist->argv[1]);
+            } else {
+                goto error;
+            }
+            if (cmdlist->argv[2] != NULL) {
+                MKQ->max_jobs = atoi(cmdlist->argv[2]);
+            } else {
+                goto error;
+            }
+            if (cmdlist->argv[3] != NULL)
+                goto error;
+        } else if (cmdlist->argv[0] != NULL && strcmp(cmdlist->argv[0], "waitq") == 0) {
+            //printf("we are here\n");
+            if (cmdlist->argv[1] != NULL && MKQ != NULL && strcmp(cmdlist->argv[1], MKQ->name) == 0)
+                wait_queue();
+            else
+                fprintf(stderr, "Could not find makeq with that name\n");
+        } else {
+            pid_t id = command_exec(cmdlist, &pipefd);
+            if (id <= 0)
+                abort();
+            
+            switch(cmdlist->controlop)
+            {
+                case CMD_END:
+                case CMD_SEMICOLON:
+                    if (cmdlist->argv[0] == NULL || 
+                        strcmp(cmdlist->argv[0], "q") != 0) {
+                        waitpid(id, &wp_status, 0);
+                        cmd_status = WEXITSTATUS(wp_status);
+                    }
+                    break;
+                case CMD_AND:
+                    waitpid(id, &wp_status, 0);
+                    if (WEXITSTATUS(wp_status) != 0) {
+                        cmd_status = WEXITSTATUS(wp_status);
+                        goto done;
+                    }
+                    break;
+                case CMD_OR:
+                    waitpid(id, &wp_status, 0);
+                    if (WEXITSTATUS(wp_status) == 0) {
+                        cmd_status = 0; // EXIT_SUCCESS
+                        goto done;
+                    }
+                    break;
+                case CMD_BACKGROUND:
+                case CMD_PIPE:
+                    cmd_status = 0;
+                    break;
+            }
+        }
 		cmdlist = cmdlist->next;
 	}
 
 done:
-	//printf("%s: cmd_status = %d\n", cmdlist->argv[0], cmd_status);
 	return cmd_status;
+    
+error:
+    //makeq_free(MKQ);
+    return 1;
 }

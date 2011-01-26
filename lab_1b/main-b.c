@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <errno.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include "cmdline.h"
@@ -30,6 +31,7 @@
  *   types a command.  But it is NOT OK for zombies to hang around forever.
  */
 
+void sig_child(int intr);
 
 /*
  * Main function for shell.
@@ -40,6 +42,8 @@ main(int argc, char *argv[])
 	int quiet = 0;
 	char input[BUFSIZ];
 	int r = 0;
+    
+    signal(SIGCHLD, sig_child);
 
 	// Check for '-q' option: be quiet -- print no prompts
 	if (argc > 1 && strcmp(argv[1], "-q") == 0)
@@ -50,40 +54,43 @@ main(int argc, char *argv[])
 		command_t *cmdlist;
 		// Print the prompt
 		if (!quiet) {
-			printf("cs111_winter11$ ");
+			printf("cs111_winter11(exit=%d)$ ", r);
 			fflush(stdout);
 		}
 
 		// Read a string, checking for error or EOF
 		if (fgets(input, BUFSIZ, stdin) == NULL) {
-			if (ferror(stdin))
-				// This function prints a description of the
-				// error, preceded by 'cs111_winter11: '.
-				perror("cs111_winter11");
-			break;
-		}
-		//printf("%s\n", input);
-
-		// build the command list
-		parse_init(&parsestate, input);
-
-		cmdlist = command_line_parse(&parsestate, 0);
-		if (!cmdlist) {
-			printf("Syntax error\n");
-			continue;
-		}
-
-		// print the command list
-		if (!quiet) {
-			command_print(cmdlist, 0);
-			// why do we need to do this?
-			fflush(stdout);
-		}
-
-		// and run it!
-		if (cmdlist)
-			r = command_line_exec(cmdlist);
-		command_free(cmdlist);
+			if (ferror(stdin)) {
+                if (errno != EINTR) {
+                    // This function prints a description of the
+                    // error, preceded by 'cs111_winter11: '.
+                    perror("cs111_winter11");
+                }
+                
+            }
+            break;
+		} //need to figure out how signals can be used
+        
+        // build the command list
+        parse_init(&parsestate, input);
+        
+        cmdlist = command_line_parse(&parsestate, 0);
+        if (!cmdlist) {
+            printf("Syntax error\n");
+            continue;
+        }
+        
+        // print the command list
+        if (!quiet) {
+            command_print(cmdlist, 0);
+            // why do we need to do this?
+            fflush(stdout);
+        }
+        
+        // and run it!
+        if (cmdlist)
+            r = command_line_exec(cmdlist);
+        command_free(cmdlist);
 		
 		while (waitpid(-1, NULL, WNOHANG) > 0)
 			/* Try again */;
@@ -91,4 +98,11 @@ main(int argc, char *argv[])
 	}
 
 	return r;//doing this for now
+}
+
+void sig_child(int intr) {
+    //sleep(1);
+    //printf("Child death\n");
+    find_finished_commands();
+    kick_queue();
 }
