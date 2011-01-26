@@ -55,7 +55,11 @@ main(int argc, char *argv[])
 		command_t *cmdlist;
 		// Print the prompt
 		if (!quiet) {
-			printf("cs111_winter11(exit=%d)$ ", r);
+			//printf("cs111_winter11(exit=%d)$ ", r);
+            printf("%c[%d;%dmcs111_winter11%c[%dm",27,1,32,27,0);
+            if (r != 0)
+                printf("%c[%d;%dm(exit=%d)%c[%dm",27,1,31,r, 27,0);
+            printf("$ ");
 			fflush(stdout);
 		}
 
