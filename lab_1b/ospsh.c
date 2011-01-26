@@ -118,7 +118,6 @@ command_exec(command_t *cmd, int *pass_pipefd)
 		}
 		
 		if (cmd->subshell) {
-            //printf("subshell?\n");
 			int exit_status = command_line_exec(cmd->subshell);
 			exit(exit_status ? EXIT_FAILURE : EXIT_SUCCESS);
 		} else if (strcmp(cmd->argv[0], "cd") == 0) {

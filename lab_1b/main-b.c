@@ -35,6 +35,7 @@ void sig_child(int intr);
 
 /*
  * Main function for shell.
+ * Need to implement this using readline (man readline)
  */
 int
 main(int argc, char *argv[])
