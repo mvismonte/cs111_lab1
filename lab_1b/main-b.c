@@ -48,6 +48,9 @@ int
 main(int argc, char *argv[])
 {
     signal(SIGCHLD, sig_child);
+    
+    initialize_path_tree();
+    print_tree();
 
 	// Check for '-q' option: be quiet -- print no prompts
 	if (argc > 1 && strcmp(argv[1], "-q") == 0)

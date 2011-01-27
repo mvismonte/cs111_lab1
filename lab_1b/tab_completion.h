@@ -28,5 +28,7 @@ command_completion(char *str, int start, int end);
 
 void initialize_path_tree(void);
 
+void print_tree(void);
+
 
 #endif

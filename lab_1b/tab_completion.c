@@ -10,6 +10,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/dir.h>
+#include <dirent.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "tab_completion.h"
@@ -21,6 +24,8 @@ pathcommand_t *HEAD;
 //private functions
 void add_pathcommand(char *cmd);
 void add_pathcommand_recur(pathcommand_t *current, pathcommand_t *pathcmd);
+char **find_matches(char *str);
+void print_tree_recur(pathcommand_t *cur);
 
 /*
  * pathcommand_alloc()
@@ -50,7 +55,7 @@ pathcommand_alloc(void)
 void
 pathcommand_free(pathcommand_t *pathcmd)
 {	
-    if (patchcmd == NULL)
+    if (pathcmd == NULL)
         return;
 	if (pathcmd->cmd) {
         free(pathcmd->cmd);
@@ -116,15 +121,32 @@ initialize_path_tree(void) {
         ++path_s;
         DIR *curr_dir = opendir(dir);
         while (1) {
-            dirent *dir_item = readdir(curr_dir);
+            struct dirent *dir_item = readdir(curr_dir);
             if (dir_item == NULL)
                 break;
             /* Convert dirent to char * ? */
-            char *command;  //?
+            char *command = dir_item->d_name;  //?
             add_pathcommand(command);
         }
 
     }
+}
+
+void print_tree() {
+    print_tree_recur(HEAD);
+}
+
+void print_tree_recur(pathcommand_t *cur) {
+    if (NULL)
+        return;
+    print_tree_recur(cur->left);
+    printf("%s\n", cur->cmd);
+    print_tree_recur(cur->right);
+}
+
+char **
+find_matches(char *str) {
+    return NULL;
 }
 
 char **
