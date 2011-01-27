@@ -419,8 +419,8 @@ command_line_parse(parsestate_t *parsestate, int in_parens)
 	command_t *prev_cmd = NULL;
 	command_t *head = NULL;
 	command_t *cmd;
-	token_t token;
-	int r;
+	//token_t token;
+	//int r;
 
 	// This loop has to deal with command syntax in a smart way.
 	// Here's a nonexhaustive list of the behavior it should implement

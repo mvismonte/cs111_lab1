@@ -32,6 +32,7 @@
  *   That is, it is OK if a zombie hangs around until the next time the user
  *   types a command.  But it is NOT OK for zombies to hang around forever.
  */
+#define PROMPT_SIZE 256
 
 void sig_child(int intr);
 
@@ -45,6 +46,7 @@ main(int argc, char *argv[])
 	int quiet = 0;
 	//char input[BUFSIZ];
     char *buf;
+    char prompt[PROMPT_SIZE];
 	int r = 0;
     
     signal(SIGCHLD, sig_child);
@@ -56,29 +58,21 @@ main(int argc, char *argv[])
 	while (!feof(stdin)) {
 		parsestate_t parsestate;
 		command_t *cmdlist;
+        prompt[0] = 0;//clear the prompt
 		// Print the prompt
 		if (!quiet) {
-			//printf("cs111_winter11(exit=%d)$ ", r);
-            printf("%c[%d;%dmcs111_winter11%c[%dm",27,1,32,27,0);
+            sprintf(prompt, "%c[%d;%dmcs111_winter11%c[%dm",27,1,32,27,0);
             if (r != 0)
-                printf("%c[%d;%dm(exit=%d)%c[%dm",27,1,31,r, 27,0);
-            printf("$ ");
+                sprintf(prompt + strlen(prompt), "%c[%d;%dm(exit=%d)%c[%dm",27,1,31,r, 27,0);
+            sprintf(prompt + strlen(prompt), "$ ");
 			fflush(stdout);
-		}
-
-		// Read a string, checking for error or EOF
-		/*if (fgets(input, BUFSIZ, stdin) == NULL) {
-			if (ferror(stdin)) {
-                if (errno != EINTR) {
-                    // This function prints a description of the
-                    // error, preceded by 'cs111_winter11: '.
-                    perror("cs111_winter11");
-                }
-                
+            
+            buf = readline(prompt);
+            if (!buf) {
+                fprintf(stderr, "Exiting...\n");
+                exit(1);
             }
-            break;
-		} //need to figure out how signals can be used*/
-        buf = readline("");
+		}
         
         // build the command list
         parse_init(&parsestate, buf);
@@ -103,6 +97,9 @@ main(int argc, char *argv[])
 		
 		while (waitpid(-1, NULL, WNOHANG) > 0)
 			/* Try again */;
+        
+        if (buf)
+            free(buf);
 
 	}
 
