@@ -72,6 +72,8 @@ main(int argc, char *argv[])
             fprintf(stderr, "Exiting...\n");
             exit(1);
         }
+        if (strcmp(buf,"") == 0)
+            continue;
         
         // build the command list
         parse_init(&parsestate, buf);
