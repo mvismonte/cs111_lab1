@@ -14,6 +14,8 @@
 #include <readline/history.h>
 #include "tab_completion.h"
 
+#include <dirent.h>
+
 pathcommand_t *HEAD;
 
 //private functions
@@ -48,6 +50,8 @@ pathcommand_alloc(void)
 void
 pathcommand_free(pathcommand_t *pathcmd)
 {	
+    if (patchcmd == NULL)
+        return;
 	if (pathcmd->cmd) {
         free(pathcmd->cmd);
     }
@@ -91,6 +95,36 @@ void add_pathcommand_recur(pathcommand_t *current, pathcommand_t *to_add) { //sh
 void
 initialize_path_tree(void) {
     char *path = getenv("PATH");
+
+    // Add shell commands
+    add_pathcommand("cd");
+    add_pathcommand("exit");
+
+    /* getting each dir : */
+    char *dir = (char *) malloc(sizeof(*path));
+    memset(dir, 0, sizeof(*path));
+    unsigned int path_s = 0;
+    unsigned int i;
+    while (path[path_s] != '\0') {
+        i = 0;
+        while (path[path_s] != ':' && path[path_s] != '\0') {
+            dir[i] = path[path_s];
+            ++path_s;
+            ++i;
+        }
+        dir[i] = '\0';
+        ++path_s;
+        DIR *curr_dir = opendir(dir);
+        while (1) {
+            dirent *dir_item = readdir(curr_dir);
+            if (dir_item == NULL)
+                break;
+            /* Convert dirent to char * ? */
+            char *command;  //?
+            add_pathcommand(command);
+        }
+
+    }
 }
 
 char **
