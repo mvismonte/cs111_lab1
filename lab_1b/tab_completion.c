@@ -17,7 +17,7 @@
 pathcommand_t *HEAD;
 
 //private functions
-void add_pathcommand(pathcommand_t *pathcmd);
+void add_pathcommand(char *cmd);
 void add_pathcommand_recur(pathcommand_t *current, pathcommand_t *pathcmd);
 
 /*
@@ -57,13 +57,17 @@ pathcommand_free(pathcommand_t *pathcmd)
 	free(pathcmd);
 }
 
-void add_pathcommand(pathcommand_t *pathcmd) {
-    if (!pathcmd)
+void add_pathcommand(char *cmd) {
+    size_t len = strlen(cmd);
+    if (len == 0)
         return;
+    pathcommand_t * new_pathcmd = pathcommand_alloc();
+    new_pathcmd->cmd = cmd;
+    new_pathcmd->len = len;
     if (!HEAD) {
-        HEAD = pathcmd;
+        HEAD = new_pathcmd;
     } else {
-        add_pathcommand_recur(HEAD, pathcmd);
+        add_pathcommand_recur(HEAD, new_pathcmd);
     }
 }
 
@@ -86,7 +90,7 @@ void add_pathcommand_recur(pathcommand_t *current, pathcommand_t *to_add) { //sh
 
 void
 initialize_path_tree(void) {
-
+    char *path = getenv("PATH");
 }
 
 char **
