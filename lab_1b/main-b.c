@@ -34,7 +34,10 @@
  */
 #define PROMPT_SIZE 256
 
+int regular_main();
+int quiet_main();
 void sig_child(int intr);
+
 
 /*
  * Main function for shell.
@@ -43,18 +46,21 @@ void sig_child(int intr);
 int
 main(int argc, char *argv[])
 {
-	char input[BUFSIZ];
-    char *buf;
-    char prompt[PROMPT_SIZE];
-	int r = 0;
-    
     signal(SIGCHLD, sig_child);
 
 	// Check for '-q' option: be quiet -- print no prompts
 	if (argc > 1 && strcmp(argv[1], "-q") == 0)
-		goto quiet;
+        return quiet_main();
+    else
+        return regular_main();
+}
 
-	while (!feof(stdin)) {
+int regular_main() {
+    char *buf;
+    char prompt[PROMPT_SIZE];
+	int r = 0;
+    
+    while (!feof(stdin)) {
 		parsestate_t parsestate;
 		command_t *cmdlist;
         prompt[0] = 0;//clear the prompt
@@ -95,15 +101,19 @@ main(int argc, char *argv[])
         command_free(cmdlist);
 		
 		while (waitpid(-1, NULL, WNOHANG) > 0)
-			/* Try again */;
+        /* Try again */;
         
         if (buf)
             free(buf);
-
+        
 	}
-    goto done;
-    
-quiet:
+   
+    return r;
+}
+
+int quiet_main() {
+    char input[BUFSIZ];
+	int r = 0;
     
     while (!feof(stdin)) {
 		parsestate_t parsestate;
@@ -140,12 +150,10 @@ quiet:
         /* Try again */;
         
 	}
-    
-
-    
-done:
-	return r;//doing this for now
+    return r;
 }
+
+
 
 void sig_child(int intr) {
     //sleep(1);
