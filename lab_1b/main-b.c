@@ -60,6 +60,8 @@ int regular_main() {
     char prompt[PROMPT_SIZE];
 	int r = 0;
     
+    //rl_attempted_completion_function =
+    
     while (!feof(stdin)) {
 		parsestate_t parsestate;
 		command_t *cmdlist;
