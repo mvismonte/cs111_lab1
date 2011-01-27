@@ -120,12 +120,14 @@ initialize_path_tree(void) {
         dir[i] = '\0';
         ++path_s;
         DIR *curr_dir = opendir(dir);
+        if (!curr_dir)
+            continue;
         while (1) {
             struct dirent *dir_item = readdir(curr_dir);
             if (dir_item == NULL)
                 break;
             /* Convert dirent to char * ? */
-            char *command = dir_item->d_name;  //?
+            char *command = strdup(dir_item->d_name);  //?
             add_pathcommand(command);
         }
 
@@ -137,7 +139,7 @@ void print_tree() {
 }
 
 void print_tree_recur(pathcommand_t *cur) {
-    if (NULL)
+    if (cur == NULL)
         return;
     print_tree_recur(cur->left);
     printf("%s\n", cur->cmd);
