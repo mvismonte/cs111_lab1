@@ -101,10 +101,12 @@ int regular_main() {
         command_free(cmdlist);
 		
 		while (waitpid(-1, NULL, WNOHANG) > 0)
-        /* Try again */;
+            /* Try again */;
         
-        if (buf)
+        if (buf) {
+            add_history(buf);
             free(buf);
+        }
         
 	}
    
@@ -147,7 +149,7 @@ int quiet_main() {
         command_free(cmdlist);
 		
 		while (waitpid(-1, NULL, WNOHANG) > 0)
-        /* Try again */;
+            /* Try again */;
         
 	}
     return r;
