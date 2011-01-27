@@ -8,9 +8,9 @@ V = @
 
 all: ospsh
 
-ospsh: cmdline.o ospsh.o makeq.o main-b.o
+ospsh: cmdline.o ospsh.o makeq.o tab_completion.o main-b.o
 	@echo + link $@
-	$(V)$(CC) $(CFLAGS) -lpthread -o $@ cmdline.o ospsh.o makeq.o main-b.o -lreadline
+	$(V)$(CC) $(CFLAGS) -lpthread -o $@ cmdline.o ospsh.o makeq.o main-b.o tab_completion.o -lreadline
 
 ospsh.o: ospsh.c cmdline.h ospsh.h
 	@echo + cc ospsh.c
@@ -23,12 +23,16 @@ cmdline.o: cmdline.c cmdline.h
 makeq.o: makeq.c cmdline.h
 	@echo + cc makeq.c
 	$(V)$(CC) $(CFLAGS) -c makeq.c
+	
+tab_completion.o: tab_completion.c
+	@echo + cc tab_completion.c
+	$(V)$(CC) $(CFLAGS) -c tab_completion.c
 
 main-a.o: main-a.c cmdline.h
 	@echo + cc main-a.c
 	$(V)$(CC) $(CFLAGS) -c main-a.c
 
-main-b.o: main-b.c cmdline.h ospsh.h makeq.h
+main-b.o: main-b.c cmdline.h ospsh.h makeq.h tab_completion.h
 	@echo + cc main-b.c
 	$(V)$(CC) $(CFLAGS) -c main-b.c
 

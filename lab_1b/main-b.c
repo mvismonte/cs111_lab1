@@ -19,6 +19,7 @@
 #include <readline/history.h>
 #include "cmdline.h"
 #include "ospsh.h"
+#include "tab_completion.h"
 
 /* EXERCISE: Make sure you free memory used by the command_t structures
  * when it is no longer needed.
@@ -60,7 +61,7 @@ int regular_main() {
     char prompt[PROMPT_SIZE];
 	int r = 0;
     
-    //rl_attempted_completion_function =
+    rl_attempted_completion_function = (CPPFunction *)command_completion;
     
     while (!feof(stdin)) {
 		parsestate_t parsestate;
