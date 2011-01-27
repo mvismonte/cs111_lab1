@@ -43,8 +43,7 @@ void sig_child(int intr);
 int
 main(int argc, char *argv[])
 {
-	int quiet = 0;
-	//char input[BUFSIZ];
+	char input[BUFSIZ];
     char *buf;
     char prompt[PROMPT_SIZE];
 	int r = 0;
@@ -53,26 +52,26 @@ main(int argc, char *argv[])
 
 	// Check for '-q' option: be quiet -- print no prompts
 	if (argc > 1 && strcmp(argv[1], "-q") == 0)
-		quiet = 1;
+		goto quiet;
 
 	while (!feof(stdin)) {
 		parsestate_t parsestate;
 		command_t *cmdlist;
         prompt[0] = 0;//clear the prompt
+        buf = NULL;
+        
 		// Print the prompt
-		if (!quiet) {
-            sprintf(prompt, "%c[%d;%dmcs111_winter11%c[%dm",27,1,32,27,0);
-            if (r != 0)
-                sprintf(prompt + strlen(prompt), "%c[%d;%dm(exit=%d)%c[%dm",27,1,31,r, 27,0);
-            sprintf(prompt + strlen(prompt), "$ ");
-			fflush(stdout);
-            
-            buf = readline(prompt);
-            if (!buf) {
-                fprintf(stderr, "Exiting...\n");
-                exit(1);
-            }
-		}
+        sprintf(prompt, "%c[%d;%dmcs111_winter11%c[%dm",27,1,32,27,0);
+        if (r != 0)
+            sprintf(prompt + strlen(prompt), "%c[%d;%dm(exit=%d)%c[%dm",27,1,31,r, 27,0);
+        sprintf(prompt + strlen(prompt), "$ ");
+        fflush(stdout);
+        
+        buf = readline(prompt);
+        if (!buf) {
+            fprintf(stderr, "Exiting...\n");
+            exit(1);
+        }
         
         // build the command list
         parse_init(&parsestate, buf);
@@ -84,11 +83,9 @@ main(int argc, char *argv[])
         }
         
         // print the command list
-        if (!quiet) {
-            command_print(cmdlist, 0);
-            // why do we need to do this?
-            fflush(stdout);
-        }
+        command_print(cmdlist, 0);
+        // why do we need to do this?
+        fflush(stdout);
         
         // and run it!
         if (cmdlist)
@@ -102,7 +99,49 @@ main(int argc, char *argv[])
             free(buf);
 
 	}
+    goto done;
+    
+quiet:
+    
+    while (!feof(stdin)) {
+		parsestate_t parsestate;
+		command_t *cmdlist;
+        
+		// Read a string, checking for error or EOF
+		if (fgets(input, BUFSIZ, stdin) == NULL) {
+			if (ferror(stdin)) {
+                if (errno != EINTR) {
+                    // This function prints a description of the
+                    // error, preceded by 'cs111_winter11: '.
+                    perror("cs111_winter11");
+                }
+                
+            }
+            break;
+		} //need to figure out how signals can be used
+        
+        // build the command list
+        parse_init(&parsestate, input);
+        
+        cmdlist = command_line_parse(&parsestate, 0);
+        if (!cmdlist) {
+            printf("Syntax error\n");
+            continue;
+        }
+        
+        // and run it!
+        if (cmdlist)
+            r = command_line_exec(cmdlist);
+        command_free(cmdlist);
+		
+		while (waitpid(-1, NULL, WNOHANG) > 0)
+        /* Try again */;
+        
+	}
+    
 
+    
+done:
 	return r;//doing this for now
 }
 

@@ -135,7 +135,9 @@ command_exec(command_t *cmd, int *pass_pipefd)
             //printf("To be Q'd\n");
             read(q_com->pipe[0], NULL, 1);
             execvp(cmd->argv[2], &cmd->argv[2]);
-		} else {
+		} else if (strcmp(cmd->argv[0], "exit") == 0) {
+            exit(0);
+        } else {
 			if (execvp(cmd->argv[0], &cmd->argv[0]) == -1) {
                 fprintf(stderr, "%s: command not found\n", cmd->argv[0]);
                 exit(-1);
