@@ -81,8 +81,10 @@ void add_pathcommand(char *cmd) {
 }
 
 void add_pathcommand_recur(pathcommand_t *current, pathcommand_t *to_add) { //should guarentee that neither are null
-    size_t small_len = current->len < to_add->len ? current->len : to_add->len;
-    if (strncmp(current->cmd, to_add->cmd, small_len) < 0) {
+    
+    if (strcmp(current->cmd, to_add->cmd) == 0) { //then don't add it
+        pathcommand_free(to_add);
+    } else if (strcmp(current->cmd, to_add->cmd) > 0) {
         if (current->left == NULL) {
             current->left = to_add;
         } else {
@@ -102,8 +104,9 @@ initialize_path_tree(void) {
     char *path = getenv("PATH");
 
     // Add shell commands
-    add_pathcommand("cd");
     add_pathcommand("exit");
+    add_pathcommand("cd");
+    
 
     /* getting each dir : */
     char *dir = (char *) malloc(sizeof(*path));
@@ -126,6 +129,11 @@ initialize_path_tree(void) {
             struct dirent *dir_item = readdir(curr_dir);
             if (dir_item == NULL)
                 break;
+            /* continue when we see . and .. */
+            if (strcmp(dir_item->d_name, ".") == 0)
+                continue;
+            if (strcmp(dir_item->d_name, "..") == 0)
+                continue;
             /* Convert dirent to char * ? */
             char *command = strdup(dir_item->d_name);  //?
             add_pathcommand(command);
