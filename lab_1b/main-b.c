@@ -15,6 +15,8 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include "cmdline.h"
 #include "ospsh.h"
 
@@ -41,7 +43,8 @@ int
 main(int argc, char *argv[])
 {
 	int quiet = 0;
-	char input[BUFSIZ];
+	//char input[BUFSIZ];
+    char *buf;
 	int r = 0;
     
     signal(SIGCHLD, sig_child);
@@ -64,7 +67,7 @@ main(int argc, char *argv[])
 		}
 
 		// Read a string, checking for error or EOF
-		if (fgets(input, BUFSIZ, stdin) == NULL) {
+		/*if (fgets(input, BUFSIZ, stdin) == NULL) {
 			if (ferror(stdin)) {
                 if (errno != EINTR) {
                     // This function prints a description of the
@@ -74,10 +77,11 @@ main(int argc, char *argv[])
                 
             }
             break;
-		} //need to figure out how signals can be used
+		} //need to figure out how signals can be used*/
+        buf = readline("");
         
         // build the command list
-        parse_init(&parsestate, input);
+        parse_init(&parsestate, buf);
         
         cmdlist = command_line_parse(&parsestate, 0);
         if (!cmdlist) {

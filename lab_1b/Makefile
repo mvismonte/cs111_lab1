@@ -10,7 +10,7 @@ all: ospsh
 
 ospsh: cmdline.o ospsh.o makeq.o main-b.o
 	@echo + link $@
-	$(V)$(CC) $(CFLAGS) -lpthread -o $@ cmdline.o ospsh.o makeq.o main-b.o
+	$(V)$(CC) $(CFLAGS) -lpthread -o $@ cmdline.o ospsh.o makeq.o main-b.o -lreadline
 
 ospsh.o: ospsh.c cmdline.h ospsh.h
 	@echo + cc ospsh.c
