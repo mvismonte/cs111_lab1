@@ -62,7 +62,7 @@ int regular_main() {
 	int r = 0;
     
     rl_attempted_completion_function = (CPPFunction *)command_completion;
-    
+        
     while (!feof(stdin)) {
 		parsestate_t parsestate;
 		command_t *cmdlist;

@@ -9,10 +9,28 @@
 #ifndef TAB_COMPLETION_H
 #define TAB_COMPLETION_H
 
+//node for our binary tree
+typedef struct pathcommand pathcommand_t;
+
+struct pathcommand {
+    char *cmd;
+    size_t len;
+    pathcommand_t *left;
+    pathcommand_t *right;
+};
+
+pathcommand_t *HEAD;
+
+pathcommand_t *pathcommand_alloc(void);
+
+void pathcommand_free(pathcommand_t *pathcmd);
+
+void add_pathcommand(pathcommand_t *pathcmd);
+
+void add_pathcommand_recur(pathcommand_t *current, pathcommand_t *pathcmd);
+
 char **
 command_completion(char *str, int start, int end);
 
-char*
-command_matcher(char *str, int state);
 
 #endif
