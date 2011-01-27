@@ -14,6 +14,12 @@
 #include <readline/history.h>
 #include "tab_completion.h"
 
+pathcommand_t *HEAD;
+
+//private functions
+void add_pathcommand(pathcommand_t *pathcmd);
+void add_pathcommand_recur(pathcommand_t *current, pathcommand_t *pathcmd);
+
 /*
  * pathcommand_alloc()
  *
@@ -61,11 +67,27 @@ void add_pathcommand(pathcommand_t *pathcmd) {
     }
 }
 
-void add_pathcommand_recur(pathcommand_t *current, pathcommand_t *pathcmd) {
-    
+void add_pathcommand_recur(pathcommand_t *current, pathcommand_t *to_add) { //should guarentee that neither are null
+    size_t small_len = current->len < to_add->len ? current->len : to_add->len;
+    if (strncmp(current->cmd, to_add->cmd, small_len) < 0) {
+        if (current->left == NULL) {
+            current->left = to_add;
+        } else {
+            add_pathcommand_recur(current->left, to_add);
+        }
+    } else {
+        if (current->right == NULL) {
+            current->right = to_add;
+        } else {
+            add_pathcommand_recur(current->right, to_add);
+        }
+    }
 }
 
+void
+initialize_path_tree(void) {
 
+}
 
 char **
 command_completion(char *str, int start, int end) {

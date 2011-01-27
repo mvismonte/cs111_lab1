@@ -19,18 +19,14 @@ struct pathcommand {
     pathcommand_t *right;
 };
 
-pathcommand_t *HEAD;
-
 pathcommand_t *pathcommand_alloc(void);
 
 void pathcommand_free(pathcommand_t *pathcmd);
 
-void add_pathcommand(pathcommand_t *pathcmd);
-
-void add_pathcommand_recur(pathcommand_t *current, pathcommand_t *pathcmd);
-
 char **
 command_completion(char *str, int start, int end);
+
+void initialize_path_tree(void);
 
 
 #endif
