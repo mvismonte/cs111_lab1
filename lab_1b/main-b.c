@@ -65,6 +65,7 @@ int regular_main() {
 	int r = 0;
     
     rl_attempted_completion_function = (CPPFunction *)command_completion;
+    command_completion("l", 0, 2);
         
     while (!feof(stdin)) {
 		parsestate_t parsestate;
