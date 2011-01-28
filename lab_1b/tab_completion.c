@@ -196,21 +196,39 @@ find_matches(pathcommand_t *cur, char *str, size_t len, char **ret, int *index, 
     return ret;
 }
 
+char *
+command_generator(char *str, int state) {
+    static char **matches = NULL;
+    
+    //printf("state: %d\n", state);
+    if (state == 0) {
+        int index = 0, size = 1024;
+        matches = malloc(sizeof(char *) * size);
+        matches = find_matches(HEAD, str, strlen(str), matches, &index, &size);
+        matches[index] = NULL;
+    }
+    //printf("%s\t", matches[state]);
+    return matches[state];
+}
+
 char **
 command_completion(char *str, int start, int end) {
     //fprintf(stderr, "\n%s: %d, %d\n", str, start, end);
     char **matches = NULL;
     int index = 0, size = 1024;
-    int i;
     
-    //if (start == 0) {
+    if (start == 0) {
+        matches = (char **) rl_completion_matches(str, (CPFunction *) command_generator);
+    }
+    /*if (start == 0) {
         //pathcommand_t *first = find_first_matching(HEAD, str, strlen(str));
         //do something else
         matches = malloc(sizeof(char *) * size);
         matches = find_matches(HEAD, str, strlen(str), matches, &index, &size);
         matches[index] = NULL;
-    //}
-    /*if (matches != NULL) {
+    }
+    if (matches != NULL) {
+        int i;
         printf("\nMatches==>\n");
         for (i = 0; i < size; i++)
             if (matches[i] != NULL)
