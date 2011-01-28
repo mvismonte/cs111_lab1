@@ -198,8 +198,8 @@ command_completion(char *str, int start, int end) {
         matches = (char **) rl_completion_matches(str, (CPFunction *) command_generator);
     } else {
         //char *cmd = rl_copy_text (0, start);
-        char *cmd = "";
-        printf("%s %s: %d, %d\n", cmd, str, start, end);
+        //char *cmd = "";
+        //printf("%s %s: %d, %d\n", cmd, str, start, end);
     }
     return matches;
 }
