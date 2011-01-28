@@ -24,6 +24,7 @@ pathcommand_t *HEAD;
 //private functions
 void add_pathcommand(char *cmd);
 void add_pathcommand_recur(pathcommand_t *current, pathcommand_t *pathcmd);
+pathcommand_t *find_first_matching(pathcommand_t *cur, char *str, size_t len);
 char **find_matches(pathcommand_t *cur, char *str, size_t len, char** ret, int *index, int *size);
 void print_tree_recur(pathcommand_t *cur);
 
@@ -155,51 +156,71 @@ void print_tree_recur(pathcommand_t *cur) {
     print_tree_recur(cur->right);
 }
 
+pathcommand_t *find_first_matching(pathcommand_t *cur, char *str, size_t len) {
+    if (cur == NULL)
+        return NULL;
+    int cmp = strncmp(cur->cmd, str, len);
+    if (cmp == 0) {
+        return cur;
+    } else if (cmp > 0) {
+        return find_first_matching(cur->left, str, len);
+    } else {
+        return find_first_matching(cur->right, str, len);
+    }
+}
+
 char **
 find_matches(pathcommand_t *cur, char *str, size_t len, char **ret, int *index, int *size) {
     if (cur == NULL)
         return ret;
     int cmp = strncmp(cur->cmd, str, len);
+    if (cmp >= 0) {
+        ret = find_matches(cur->left, str, len, ret, index, size);
+    }
+    
     if (cmp == 0) {
+        
+        
         if (*index + 1 >= *size) {
-            *size = *size * 2;
-            ret = realloc(ret, *size);
+            *size *= 2;
+            ret = realloc(ret, (*size) * sizeof(char *));
         }
         ret[*index] = strdup(cur->cmd);
         (*index)++;
-        ret = find_matches(cur->left, str, len, ret,index, size);
+        
+        
+    }
+    if (cmp <= 0) {
         ret = find_matches(cur->right, str, len, ret, index, size);
-    } else {
-        if (cmp > 0) {
-            ret = find_matches(cur->left, str, len, ret,index, size);
-        } else {
-            ret = find_matches(cur->right, str, len, ret, index, size);
-        }
     }
     return ret;
 }
 
 char **
 command_completion(char *str, int start, int end) {
+    //fprintf(stderr, "\n%s: %d, %d\n", str, start, end);
     char **matches = NULL;
-    int index = 0, size = 20;
-    //int i;
+    int index = 0, size = 1024;
+    int i;
     
-    if (start == 0) {
+    //if (start == 0) {
+        //pathcommand_t *first = find_first_matching(HEAD, str, strlen(str));
         //do something else
         matches = malloc(sizeof(char *) * size);
         matches = find_matches(HEAD, str, strlen(str), matches, &index, &size);
         matches[index] = NULL;
-    }
+    //}
     /*if (matches != NULL) {
+        printf("\nMatches==>\n");
         for (i = 0; i < size; i++)
             if (matches[i] != NULL)
                 printf("%s\n", matches[i]);
             else {
-                break;`
+                break;
             }
-
-    }*/
+        printf("=========\n");
+    }
     
+    fprintf(stderr, "finished\n");*/
     return matches;
 }

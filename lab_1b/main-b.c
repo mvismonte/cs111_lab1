@@ -50,7 +50,7 @@ main(int argc, char *argv[])
     signal(SIGCHLD, sig_child);
     
     initialize_path_tree();
-    print_tree();
+    //print_tree();
 
 	// Check for '-q' option: be quiet -- print no prompts
 	if (argc > 1 && strcmp(argv[1], "-q") == 0)
@@ -65,7 +65,8 @@ int regular_main() {
 	int r = 0;
     
     rl_attempted_completion_function = (CPPFunction *)command_completion;
-    command_completion("l", 0, 2);
+    //command_completion("l", 0, 1);
+    //command_completion("lam", 0, 3);
         
     while (!feof(stdin)) {
 		parsestate_t parsestate;
