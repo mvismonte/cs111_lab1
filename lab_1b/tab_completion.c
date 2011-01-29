@@ -103,6 +103,9 @@ initialize_path_tree(void) {
     char *path = getenv("PATH");
 
     // Add shell commands
+    add_pathcommand("makeq");
+    add_pathcommand("waitq");
+    add_pathcommand("q");
     add_pathcommand("exit");
     add_pathcommand("cd");
     
@@ -197,7 +200,7 @@ command_completion(char *str, int start, int end) {
     if (start == 0) {
         matches = (char **) rl_completion_matches(str, (CPFunction *) command_generator);
     } else {
-        //char *cmd = rl_copy_text (0, start);
+        //rl_ding();
         //char *cmd = "";
         //printf("%s %s: %d, %d\n", cmd, str, start, end);
     }
