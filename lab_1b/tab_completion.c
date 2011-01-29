@@ -70,7 +70,6 @@ void add_pathcommand(char *cmd) {
         return;
     pathcommand_t * new_pathcmd = pathcommand_alloc();
     new_pathcmd->cmd = cmd;
-    new_pathcmd->len = len;
     if (!HEAD) {
         HEAD = new_pathcmd;
     } else {
@@ -140,6 +139,7 @@ initialize_path_tree(void) {
             char *command = strdup(dir_item->d_name);  //?
             add_pathcommand(command);
         }
+        closedir(curr_dir);
 
     }
 }
