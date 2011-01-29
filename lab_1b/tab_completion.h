@@ -14,7 +14,6 @@ typedef struct pathcommand pathcommand_t;
 
 struct pathcommand {
     char *cmd;
-    size_t len;
     pathcommand_t *left;
     pathcommand_t *right;
 };
