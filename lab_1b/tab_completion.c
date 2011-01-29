@@ -142,6 +142,7 @@ initialize_path_tree(void) {
         closedir(curr_dir);
 
     }
+    free(dir);
 }
 
 void print_tree() {
