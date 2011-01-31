@@ -22,7 +22,7 @@ pathcommand_t *HEAD;
 //private functions
 void add_pathcommand(char *cmd);
 void add_pathcommand_recur(pathcommand_t *current, pathcommand_t *pathcmd);
-char **find_matches(pathcommand_t *cur, char *str, size_t len, char** ret, int *index, int *size);
+char **find_matches(pathcommand_t *cur, char *str, size_t len, char **ret, int *index, int *size);
 void print_tree_recur(pathcommand_t *cur);
 
 /*
@@ -192,7 +192,12 @@ command_generator(char *str, int state) {
         matches[index] = NULL;
     }
     //printf("%s\t", matches[state]);
-    return matches[state];
+    if (matches[state] == NULL) {
+        free(matches);
+        return NULL;
+    } else {
+        return matches[state];
+    }
 }
 
 char **
